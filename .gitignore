@@ -1,1 +1,4 @@
-__pycache__/preprocessing.cpython-310.pyc
+__pycache__/*
+annotations
+data
+outputs

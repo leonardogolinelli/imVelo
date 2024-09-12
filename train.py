@@ -30,7 +30,7 @@ class Trainer:
         self.kl_start = kl_start
         self.split_data = split_data
         self.n_samples = n_samples
-        self.weight_decay = weight_decay
+        self.weight_decay = weight_decay,
 
         # Setup dataloaders
         self.train_dl, self.test_dl, self.full_data_loader = setup_dataloaders(self.adata, self.batch_size, self.train_size, self.split_data)
@@ -289,7 +289,7 @@ class Trainer:
 
     def load_best_model(self):
         # Load the dictionary of losses
-        with open(os.path.join("outputs/model_checkpoints", "losses.pkl"), 'rb') as f:
+        with open(os.path.join(f"outputs/model_checkpoints", "losses.pkl"), 'rb') as f:
             self.losses = pickle.load(f)
 
         # Find the epoch with the lowest total loss

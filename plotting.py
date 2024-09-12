@@ -158,6 +158,7 @@ def plot_losses(trainer, dataset, K,figsize=(20, 10)):
     # Adjust layout to prevent overlap
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     save_path = f"outputs/{dataset}/K{K}/stats/training_stats.png"
+    os.makedirs(f"outputs/{dataset}/K{K}/stats/", exist_ok=True)
     
     plt.savefig(save_path)  # Save using plt.savefig
 
