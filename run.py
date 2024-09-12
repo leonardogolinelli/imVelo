@@ -19,7 +19,7 @@ knn_rep = "ve"
 n_components = 10
 n_knn_search = 10
 best_key = None
-K = 31
+K = 11
 ve_layer = "None"
 
 # Training parameters
@@ -84,7 +84,7 @@ save_trainer(trainer, dataset_name, K, knn_rep, save_first_regime=False)
 
 ### Downstream analysis
 show = False
-top_N = 3
+top_N = 10
 
 plot_losses(trainer, dataset_name, K,figsize=(20, 10))
 plot_isomaps(adata, dataset_name, K, cell_type_key)

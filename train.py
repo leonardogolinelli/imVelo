@@ -118,8 +118,6 @@ class Trainer:
             self.adata.uns["final_losses_dic"] = final_losses_dic
 
             return final_losses_dic
-
-
  
     def train_epoch(self, learn_kinetics, current_epoch):
         self.model.train()
@@ -190,23 +188,21 @@ class Trainer:
 
         return losses["total_loss"]
     
-
     def check_params_frozen(self, learn_kinetics):
         for name, param in self.model.named_parameters():
             if 'encoder' in name or 'linear_decoder' in name:
                 assert param.requires_grad == (not learn_kinetics), f"Parameter {name} is not correctly frozen."
-
 
     def adjust_learning_rates(self, learn_kinetics):
         """Adjust the learning rates for different parameter groups based on the current training regime."""
         for name, param in self.model.named_parameters():
             if 'kinetics_decoder' in name:
                 param.requires_grad = learn_kinetics
-            elif 'linear_decoder' in name:
+            """elif 'linear_decoder' in name:
                 param.requires_grad = not learn_kinetics
             #the next elif added on 11 sept 2024 to avoid losing GP identity via non linearity
             elif 'encoder' in name:
-                param.requires_grad = not learn_kinetics
+                param.requires_grad = not learn_kinetics"""
         
         """for name, param in self.model.named_parameters():
             if 'encoder' in name or 'linear_decoder' in name:
@@ -223,7 +219,7 @@ class Trainer:
                 elif param_group['tag'] == 'linear_decoder':
                     param_group['lr'] = self.base_lr  #(0 if learn_kinetics else 1e2)
                 elif param_group['tag'] == 'kinetics_decoder':
-                    param_group['lr'] = self.base_lr * (1 if learn_kinetics else 0)
+                    param_group['lr'] = self.base_lr #* (1 if learn_kinetics else 0)
                 else:
                     param_group['lr'] = self.base_lr  # Default scaling for other parts
 
@@ -238,7 +234,7 @@ class Trainer:
             loss_train = self.train_epoch(learn_kinetics, epoch)
             loss_eval = self.eval_epoch(learn_kinetics, epoch) if self.split_data else None
 
-            if epoch % 10 == 0:
+            if epoch % 99 == 0:
                 # Save the model
                 model_path = os.path.join(model_save_dir, f"model_epoch_{epoch}.pt")
                 retry = 3
@@ -273,22 +269,44 @@ class Trainer:
 
         self.write_final_losses()
 
-
         return self.model
     
-    def load_second_regime_models(self):
+    def load_second_regime_best_model(self, load_best=True):
+        
+        """
+        Load the best or the last model from the second training regime.
+
+        Parameters:
+            load_best (bool): If True, load the model with the lowest loss in the second regime.
+                            If False, load the last model saved in the second regime.
+
+        Returns:
+            model: The loaded model from the second regime.
+        """
         # Filter epochs that correspond to the second training regime
         second_regime_epochs = [epoch for epoch in self.model_checkpoints if epoch >= self.first_regime_end]
 
-        # Load all models saved during the second regime
-        for epoch in second_regime_epochs:
-            model_path = self.model_checkpoints[epoch]
+        if not second_regime_epochs:
+            print("No models saved during the second training regime.")
+            return None
+
+        if load_best:
+            # Load the model with the lowest loss during the second regime
+            best_epoch = min(second_regime_epochs, key=lambda epoch: self.losses.get(epoch, float('inf')))
+            model_path = self.model_checkpoints[best_epoch]
             checkpoint = torch.load(model_path)
             self.model.load_state_dict(checkpoint['model_state_dict'])
-            print(f"Loaded model from epoch {epoch} with loss {checkpoint['loss']}")
+            print(f"Loaded the best model from epoch {best_epoch} with loss {checkpoint['loss']}")
+        else:
+            # Load the last model saved during the second regime
+            last_epoch = max(second_regime_epochs)
+            model_path = self.model_checkpoints[last_epoch]
+            checkpoint = torch.load(model_path)
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            print(f"Loaded the last model from epoch {last_epoch} with loss {checkpoint['loss']}")
 
         return self.model
-
+        
     def load_model(self, epoch):
         # Load the specific model checkpoint for the given epoch
         model_path = self.model_checkpoints[epoch]
@@ -306,11 +324,11 @@ class Trainer:
             self.losses = pickle.load(f)
 
         # Find the epoch with the lowest total loss
-        best_epoch = min(self.losses, key=self.losses.get)
+        #best_epoch = min(self.losses, key=self.losses.get)
 
         # Load the best model
         #best_model = self.load_model(best_epoch)
-        best_model = self.load_second_regime_models(best_epoch)
+        best_model = self.load_second_regime_best_model()
 
         return best_model
 
