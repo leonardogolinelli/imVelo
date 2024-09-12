@@ -74,13 +74,13 @@ def plot_bayes_factors(adata, bayes_factors, cell_type_key, top_N, dataset, K, s
         plt.xlabel('Absolute Log Bayes Factors')
         plt.ylabel('Rank')
         plt.yticks(ranks, labels=[f"{rank}"for rank in ranks])
+        os.makedirs(f"outputs/{dataset}/K{K}/stats/bayes_scores/", exist_ok=True)
 
         if show_plot:
             plt.show()
         if save_plot:
-            
             plt.savefig(f"outputs/{dataset}/K{K}/stats/bayes_scores/scores_{cluster}.png", bbox_inches='tight')
-            
+
 def bayes_factors(adata, cell_type_key, top_N, dataset, K, show_plot, save_plot):
     bayes_factors = compute_bayes_factors(adata, cell_type_key)
     plot_bayes_factors(adata, bayes_factors, cell_type_key, top_N, dataset, K, show_plot, save_plot)
@@ -201,7 +201,7 @@ def get_directional_uncertainty(
 
 
         path = f"outputs/{dataset}/K{K}/stats/uncertainty/intrinsic_uncertainty.png"
-        
+        os.makedirs(f"outputs/{dataset}/K{K}/stats/uncertainty/", exist_ok=True)
         plt.savefig(path, bbox_inches='tight')  # Save using plt.savefig
         plt.close()
 

@@ -238,7 +238,7 @@ class Trainer:
             loss_train = self.train_epoch(learn_kinetics, epoch)
             loss_eval = self.eval_epoch(learn_kinetics, epoch) if self.split_data else None
 
-            if epoch in [99,199,299]:
+            if epoch % 10 == 0:
                 # Save the model
                 model_path = os.path.join(model_save_dir, f"model_epoch_{epoch}.pt")
                 retry = 3
@@ -275,6 +275,19 @@ class Trainer:
 
 
         return self.model
+    
+    def load_second_regime_models(self):
+        # Filter epochs that correspond to the second training regime
+        second_regime_epochs = [epoch for epoch in self.model_checkpoints if epoch >= self.first_regime_end]
+
+        # Load all models saved during the second regime
+        for epoch in second_regime_epochs:
+            model_path = self.model_checkpoints[epoch]
+            checkpoint = torch.load(model_path)
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            print(f"Loaded model from epoch {epoch} with loss {checkpoint['loss']}")
+
+        return self.model
 
     def load_model(self, epoch):
         # Load the specific model checkpoint for the given epoch
@@ -296,7 +309,8 @@ class Trainer:
         best_epoch = min(self.losses, key=self.losses.get)
 
         # Load the best model
-        best_model = self.load_model(best_epoch)
+        #best_model = self.load_model(best_epoch)
+        best_model = self.load_second_regime_models(best_epoch)
 
         return best_model
 

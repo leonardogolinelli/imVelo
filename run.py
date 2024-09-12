@@ -27,8 +27,8 @@ model_hidden_dim = 512
 K= K
 train_size = 1
 batch_size = 256
-n_epochs = 4
-first_regime_end = 2
+n_epochs = 2500
+first_regime_end = 2000
 kl_start = 1e-5
 base_lr = 1e-4
 recon_loss_weight = 1
@@ -55,7 +55,6 @@ adata = setup_adata(dataset_name=dataset_name,
                         best_key=best_key,
                         K = K,
                         ve_layer= ve_layer)
-
 
 ### Initialize Trainer and run
 trainer = Trainer(
@@ -90,12 +89,12 @@ top_N = 3
 plot_losses(trainer, dataset_name, K,figsize=(20, 10))
 plot_isomaps(adata, dataset_name, K, cell_type_key)
 #if backward_velocity:
-#    self.self_backward_velocity()
+#    self_backward_velocity()
 plot_embeddings(adata, dataset_name, K, cell_type_key)
 compute_scvelo_metrics(adata, dataset_name, K, show, cell_type_key = cell_type_key)
 gpvelo_plots(adata, dataset_name, K, cell_type_key)
 plot_important_genes(adata, dataset_name, K, cell_type_key)
 deg_genes(adata, dataset_name, K, cell_type_key, n_deg_rows=5)
 bayes_factors(adata, cell_type_key, top_N, dataset_name, K, show_plot=False, save_plot=True)
-estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=show, dataset_name=dataset_name, K=K)
+estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=show, dataset=dataset_name, K=K)
 save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)

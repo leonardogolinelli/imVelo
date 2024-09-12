@@ -175,10 +175,10 @@ def plot_important_genes(adata, dataset, K, cell_type_key):
     for gname in return_gnames():
         gname = gname.lower().capitalize()
         if gname in list(adata.var_names):
+            os.makedirs(f"outputs/{dataset}/K{K}/phase_planes/important_genes/", exist_ok=True)
             path = f"outputs/{dataset}/K{K}/phase_planes/important_genes/{gname}.png"
             plot_phase_plane(adata, gname, dataset, K, u_scale=.01, s_scale=.01, alpha=0.5, norm_velocity=True,
                             show_plot=False, save_plot=True, save_path=path, cell_type_key=cell_type_key)
-            
 
 def gpvelo_plots(adata, dataset, K, cell_type_key):
     z = adata.obsm["z"].copy()
