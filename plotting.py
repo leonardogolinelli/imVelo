@@ -390,6 +390,7 @@ def plot_embeddings(adata, dataset, K, cell_type_key="clusters"):
     scv.pl.velocity_embedding_stream(adata_velocity, color=cell_type_key, 
                                     show=False)
     
+    os.makedirs(f"outputs/{dataset}/K{K}/embeddings/", exist_ok=True)
     plt.savefig(save_path, bbox_inches='tight')
 
     #anndata of spliced velocity embedding

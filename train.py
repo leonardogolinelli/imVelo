@@ -234,7 +234,7 @@ class Trainer:
             loss_train = self.train_epoch(learn_kinetics, epoch)
             loss_eval = self.eval_epoch(learn_kinetics, epoch) if self.split_data else None
 
-            if epoch % 99 == 0:
+            if epoch % 100 == 0 or epoch == self.n_epochs - 1:
                 # Save the model
                 model_path = os.path.join(model_save_dir, f"model_epoch_{epoch}.pt")
                 retry = 3
@@ -254,8 +254,6 @@ class Trainer:
                             print("Retrying...")
                         else:
                             raise
-
-
 
                 print(f"Epoch: {epoch}, train loss: {loss_train}, eval loss: {loss_eval}")
 
@@ -333,5 +331,6 @@ class Trainer:
         return best_model
 
     def self_extract_outputs(self):
+        self.model.eval()  # Set model to evaluation mode
         #self.model = self.load_best_model()
         extract_outputs(self.adata, self.model, self.full_data_loader, self.device)
