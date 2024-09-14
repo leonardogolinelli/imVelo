@@ -40,31 +40,35 @@ kl_weight_upper = 1e-4
 p_loss_weight = 1e-1
 split_data = False
 weight_decay = 1e-4
+load_last = True
 
-# load desired model and adata, then extract model outputs to adata
-adata = sc.read_h5ad("outputs_unfrozen_encoder_decoder_K31_smooth200/pancreas/K31/adata/adata_K31_dt_ve.h5ad")
-with open('outputs_unfrozen_encoder_decoder_K31_smooth200/pancreas/K31/trainer/trainer_K31_dt_ve.pkl', 'rb') as file:
-    trainer = pickle.load(file)
+for checkpoint in [2499, 2400, 2300, 2200, 2100]:
+    for i in range(8):
+        # load desired model and adata, then extract model outputs to adata
+        adata = sc.read_h5ad(f"outputs_{dataset_name}_{i}/pancreas/K11/adata/adata_K11_dt_ve.h5ad")
+        with open(f'outputs_{dataset_name}_{i}/pancreas/K11/trainer/trainer_K11_dt_ve.pkl', 'rb') as file:
+            trainer = pickle.load(file)
 
-model_path = "outputs_unfrozen_encoder_decoder_K31_smooth200/model_checkpoints/model_epoch_2475.pt"
-model = VAE(adata, 512, "cpu")
-checkpoint = torch.load(model_path)
-model.load_state_dict(checkpoint['model_state_dict'], strict=True)
-trainer.device = "cpu"
-trainer.model = model
-trainer.adata = adata
-trainer.self_extract_outputs()
+        model_path = f"outputs_{dataset_name}_{i}/pancreas/model_checkpoints/model_epoch_{checkpoint}.pt"
+        model = VAE(adata, 512, "cpu")
+        checkpoint = torch.load(model_path)
+        model.load_state_dict(checkpoint['model_state_dict'], strict=True)
+        trainer.device = "cpu"
+        trainer.model = model
+        trainer.adata = adata
+        trainer.self_extract_outputs()
 
-# Rerun downstream of interest
-plot_losses(trainer, dataset_name, K,figsize=(20, 10))
-plot_isomaps(adata, dataset_name, K, cell_type_key)
-#if backward_velocity:
-#    self_backward_velocity()
-plot_embeddings(adata, dataset_name, K, cell_type_key)
-compute_scvelo_metrics(adata, dataset_name, K, show=False, cell_type_key = cell_type_key)
-gpvelo_plots(adata, dataset_name, K, cell_type_key)
-plot_important_genes(adata, dataset_name, K, cell_type_key)
-deg_genes(adata, dataset_name, K, cell_type_key, n_deg_rows=5)
-bayes_factors(adata, cell_type_key, top_N=10, dataset=dataset_name, K=K, show_plot=False, save_plot=True)
-estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=False, dataset=dataset_name, K=K)
-save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)
+        # Rerun downstream of interest
+        #plot_losses(trainer, dataset_name, K,figsize=(20, 10))
+        plot_isomaps(adata, dataset_name, K, cell_type_key)
+        #if backward_velocity:
+        #    self_backward_velocity()
+        plot_embeddings(adata, dataset_name, K, cell_type_key)
+        compute_scvelo_metrics(adata, dataset_name, K, show=False, cell_type_key = cell_type_key)
+        gpvelo_plots(adata, dataset_name, K, cell_type_key)
+        plot_important_genes(adata, dataset_name, K, cell_type_key)
+        deg_genes(adata, dataset_name, K, cell_type_key, n_deg_rows=5)
+        bayes_factors(adata, cell_type_key, top_N=10, dataset=dataset_name, K=K, show_plot=False, save_plot=True)
+        estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=False, dataset=dataset_name, K=K)
+        #save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)
+        os.rename("outputs", f"onlyoutputs_{dataset_name}_{i}_checkpoint_{checkpoint}")

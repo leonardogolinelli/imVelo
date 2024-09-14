@@ -8,12 +8,14 @@ from model import VAE
 from utils import extract_outputs
 import os
 import pickle
+import time
 
 class Trainer:
     def __init__(self, adata, model_hidden_dim=512, K=30, train_size=0.8, batch_size=256, 
                  n_epochs=2000, first_regime_end=1000, kl_start=1e-4, base_lr=1e-5, 
                  recon_loss_weight=1, empirical_loss_weight=1, kl_weight_upper=1e-1, 
-                 p_loss_weight=1e-2, split_data=True, n_samples=100, weight_decay = 1e-4):
+                 p_loss_weight=1e-2, split_data=True, n_samples=100, weight_decay = 1e-4,
+                 dataset_name="pancreas", load_last=True):
         self.adata = adata
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = VAE(adata, hidden_dim=model_hidden_dim, device=self.device).to(self.device)
@@ -31,6 +33,8 @@ class Trainer:
         self.split_data = split_data
         self.n_samples = n_samples
         self.weight_decay = weight_decay,
+        self.dataset_name = dataset_name
+        self.load_last = load_last
 
         # Setup dataloaders
         self.train_dl, self.test_dl, self.full_data_loader = setup_dataloaders(self.adata, self.batch_size, self.train_size, self.split_data)
@@ -225,8 +229,16 @@ class Trainer:
 
     def train(self):
         print("")
-        model_save_dir = "outputs/model_checkpoints"
+        model_save_dir = f"outputs/{self.dataset_name}/model_checkpoints"
+        losses_save_dir = f"outputs/{self.dataset_name}/losses_dic"
+        time_save_dir = f"outputs/{self.dataset_name}/training_time"
+
         os.makedirs(model_save_dir, exist_ok=True)
+        os.makedirs(losses_save_dir, exist_ok=True)
+        os.makedirs(time_save_dir, exist_ok=True)
+
+        # Start timing the training process
+        start_time = time.time()
 
         for epoch in range(self.n_epochs):
             learn_kinetics = epoch >= self.first_regime_end
@@ -234,42 +246,47 @@ class Trainer:
             loss_train = self.train_epoch(learn_kinetics, epoch)
             loss_eval = self.eval_epoch(learn_kinetics, epoch) if self.split_data else None
 
-            if epoch % 100 == 0 or epoch == self.n_epochs - 1:
-                # Save the model
-                model_path = os.path.join(model_save_dir, f"model_epoch_{epoch}.pt")
-                retry = 3
-                for attempt in range(retry):
-                    try:
-                        torch.save({
-                            'epoch': epoch,
-                            'model_state_dict': self.model.state_dict(),
-                            'optimizer_state_dict': self.optimizer.state_dict(),
-                            'loss': loss_train,
-                        }, model_path)
-                        self.model_checkpoints[epoch] = model_path
-                        self.losses[epoch] = loss_train
-                    except RuntimeError as e:
-                        print(f"Attempt {attempt + 1} failed with error: {e}")
-                        if attempt < retry - 1:
-                            print("Retrying...")
-                        else:
-                            raise
+            if learn_kinetics:
+                if epoch % 100 == 0 or epoch == self.n_epochs - 1:
+                    # Save the model
+                    model_path = os.path.join(model_save_dir, f"model_epoch_{epoch}.pt")
+                    retry = 3
+                    for attempt in range(retry):
+                        try:
+                            torch.save({
+                                'epoch': epoch,
+                                'model_state_dict': self.model.state_dict(),
+                                'optimizer_state_dict': self.optimizer.state_dict(),
+                                'loss': loss_train,
+                            }, model_path)
+                            self.model_checkpoints[epoch] = model_path
+                            self.losses[epoch] = loss_train
+                        except RuntimeError as e:
+                            print(f"Attempt {attempt + 1} failed with error: {e}")
+                            if attempt < retry - 1:
+                                print("Retrying...")
+                            else:
+                                raise
 
-                print(f"Epoch: {epoch}, train loss: {loss_train}, eval loss: {loss_eval}")
+                    print(f"Epoch: {epoch}, train loss: {loss_train}, eval loss: {loss_eval}")
 
-                """# Save the dictionary of model checkpoints
-                with open(os.path.join(model_save_dir, "model_checkpoints.pkl"), 'wb') as f:
-                    pickle.dump(self.model_checkpoints, f)
+            # Save final losses dictionary
+            final_losses_dic = self.write_final_losses()
+            with open(os.path.join(losses_save_dir, "final_losses.pkl"), 'wb') as f:
+                pickle.dump(final_losses_dic, f)
 
-                # Save the dictionary of losses
-                with open(os.path.join(model_save_dir, "losses.pkl"), 'wb') as f:
-                    pickle.dump(self.losses, f)"""
+        # End timing the training process
+        end_time = time.time()
+        total_time = end_time - start_time
 
-        self.write_final_losses()
+        # Save training time
+        with open(os.path.join(time_save_dir, "training_time.txt"), 'w') as f:
+            f.write(f"Total training time: {total_time:.2f} seconds")
 
+        print(f"Total training time: {total_time:.2f} seconds")
         return self.model
     
-    def load_second_regime_best_model(self, load_best=True):
+    def load_second_regime_best_model(self):
         
         """
         Load the best or the last model from the second training regime.
@@ -288,7 +305,7 @@ class Trainer:
             print("No models saved during the second training regime.")
             return None
 
-        if load_best:
+        if not self.load_last:
             # Load the model with the lowest loss during the second regime
             best_epoch = min(second_regime_epochs, key=lambda epoch: self.losses.get(epoch, float('inf')))
             model_path = self.model_checkpoints[best_epoch]
