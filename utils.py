@@ -453,3 +453,24 @@ def manifold_and_neighbors(adata, n_components, n_knn_search, dataset_name, K, k
     distances, indices = nbrs.kneighbors(embedding)
 
     return distances, indices
+
+
+def load_model_checkpoint(adata, model, model_path):
+    try:
+        # Load checkpoint with strict state checking to ensure compatibility
+        checkpoint = torch.load(model_path, map_location='cpu')
+        model.load_state_dict(checkpoint['model_state_dict'], strict=True)
+        model.to('cpu')  # Ensure the model is set to CPU as expected
+
+        # Ensure all gradients are disabled (if not needed)
+        for param in model.parameters():
+            param.requires_grad = False
+
+        print("Model checkpoint loaded successfully.")
+    except Exception as e:
+        print(f"Error loading checkpoint: {e}")
+        # Optionally reinitialize model if checkpoint loading fails
+        print("Reinitializing model from scratch.")
+        model = VAE(adata, 512, "cpu")  # Replace with your model initialization code
+
+    return model

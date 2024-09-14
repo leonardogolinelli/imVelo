@@ -51,8 +51,7 @@ for checkpoint in [2499, 2400, 2300, 2200, 2100]:
 
         model_path = f"outputs_{dataset_name}_{i}/pancreas/model_checkpoints/model_epoch_{checkpoint}.pt"
         model = VAE(adata, 512, "cpu")
-        checkpoint = torch.load(model_path)
-        model.load_state_dict(checkpoint['model_state_dict'], strict=True)
+        model = load_model_checkpoint(adata, model, model_path)
         trainer.device = "cpu"
         trainer.model = model
         trainer.adata = adata

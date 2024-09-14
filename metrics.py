@@ -278,14 +278,15 @@ def estimate_uncertainty(
 
 ):
     
-    #model = model.cpu()
-    _, _, full_dl = setup_dataloaders(adata, batch_size=batch_size, train_size=.8, split_data=False)
-    get_directional_uncertainty(adata, model, n_samples=50, n_jobs=n_jobs, 
-                                                dataloader=full_dl,show=show,
-                                                dataset=dataset, K=K)
-    compute_extrinisic_uncertainty(adata, model, n_samples=25, 
-                                                dataloader=full_dl,show=show,
-                                                dataset=dataset, K=K)
+    model = model.cpu()
+    with torch.no_grad():
+        _, _, full_dl = setup_dataloaders(adata, batch_size=batch_size, train_size=.8, split_data=False)
+        get_directional_uncertainty(adata, model, n_samples=50, n_jobs=n_jobs, 
+                                                    dataloader=full_dl,show=show,
+                                                    dataset=dataset, K=K)
+        compute_extrinisic_uncertainty(adata, model, n_samples=25, 
+                                                    dataloader=full_dl,show=show,
+                                                    dataset=dataset, K=K)
     
 
 def deg_genes(adata, dataset, K, cell_type_key="clusters", n_deg_rows=5):
