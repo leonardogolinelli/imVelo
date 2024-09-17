@@ -42,7 +42,7 @@ split_data = False
 weight_decay = 1e-4
 load_last = True
 
-for checkpoint in [2499, 2400, 2300, 2200, 2100]:
+for checkpoint in [2499, 2400, 2300, 2200, 2100, 2000]:
     for i in range(1,11):
         # load desired model and adata, then extract model outputs to adata
         new_folder_name = f"onlyoutputs_{dataset_name}_{i}_checkpoint_{checkpoint}"

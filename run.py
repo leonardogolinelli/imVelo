@@ -5,11 +5,11 @@ from plotting import *
 from metrics import * 
 
 # Preprocessing parameters
-dataset_name = "forebrain"
+dataset_name = "gastrulation_erythroid"
 preproc_adata = True
 smooth_k = 200
 n_highly_var_genes = 4000
-cell_type_key = "Clusters"
+cell_type_key = "celltype"
 save_umap = False
 show_umap = False
 unspliced_key = "unspliced"
@@ -27,8 +27,8 @@ model_hidden_dim = 512
 K= K
 train_size = 1
 batch_size = 1024
-n_epochs = 2500
-first_regime_end = 2000
+n_epochs = 100
+first_regime_end = 1
 kl_start = 1e-5
 base_lr = 1e-4
 recon_loss_weight = 1
@@ -39,8 +39,8 @@ split_data = False
 weight_decay = 1e-4
 load_last = True
 
-for K in [11]:
-    for i in range(1,11):
+for K in [31,11]:
+    for i in range(5):
         # Run preprocessing
         adata = setup_adata(dataset_name=dataset_name,
                                 preproc_adata=preproc_adata,
@@ -96,11 +96,11 @@ for K in [11]:
         #if backward_velocity:
         #    self_backward_velocity()
         plot_embeddings(adata, dataset_name, K, cell_type_key)
-        """compute_scvelo_metrics(adata, dataset_name, K, show, cell_type_key = cell_type_key)
+        compute_scvelo_metrics(adata, dataset_name, K, show, cell_type_key = cell_type_key)
         gpvelo_plots(adata, dataset_name, K, cell_type_key)
         plot_important_genes(adata, dataset_name, K, cell_type_key)
         deg_genes(adata, dataset_name, K, cell_type_key, n_deg_rows=5)
         bayes_factors(adata, cell_type_key, top_N, dataset_name, K, show_plot=False, save_plot=True)
         estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=show, dataset=dataset_name, K=K)
-        save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)"""
+        save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)
         os.rename("outputs", f"outputs_{dataset_name}_K{K}_{i}")

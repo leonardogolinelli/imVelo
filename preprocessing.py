@@ -45,8 +45,8 @@ def setup_adata(dataset_name='pancreas',
             adata = scv.datasets.pancreas()
         elif dataset_name == "gastrulation_erythroid":
             adata = scv.datasets.gastrulation_erythroid()
-            #adata = adata[adata.obs["stage"]=="E8.25"].copy()
-            #dataset_name +="_E8.25"
+            adata = adata[adata.obs["stage"]=="E8.25"].copy()
+            dataset_name +="_E8.25"
         elif dataset_name == "forebrain":
             adata = scv.datasets.forebrain()
         elif dataset_name == "dentategyrus_lamanno":
@@ -109,7 +109,8 @@ def setup_adata(dataset_name='pancreas',
         #Annotate part 2
         scv.pp.filter_and_normalize(adata, min_shared_counts=20, n_top_genes=n_highly_var_genes) #filter and normalize
         scv.pp.moments(adata, n_neighbors=smooth_k)
-        sc.tl.umap(adata)
+        if dataset_name == "forebrain":
+            sc.tl.umap(adata)
         print(f"adata shape preproc: {adata.shape}")
         select_terms = adata.varm['I'].sum(0) > 12 #remove the terms that contain less than 12 genes AFTER gene filtering
         adata.uns['terms'] = np.array(adata.uns['terms'])[select_terms].tolist()
