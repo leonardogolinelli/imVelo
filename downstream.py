@@ -8,11 +8,11 @@ from plotting import *
 from utils import * 
 
 # Preprocessing parameters
-dataset_name = "pancreas"
+dataset_name = "forebrain"
 preproc_adata = True
 smooth_k = 200
 n_highly_var_genes = 4000
-cell_type_key = "clusters"
+cell_type_key = "Clusters"
 save_umap = False
 show_umap = False
 unspliced_key = "unspliced"
@@ -29,7 +29,7 @@ ve_layer = "None"
 model_hidden_dim = 512
 K= K
 train_size = 1
-batch_size = 256
+batch_size = 1024
 n_epochs = 2500
 first_regime_end = 2000
 kl_start = 1e-5
@@ -43,15 +43,15 @@ weight_decay = 1e-4
 load_last = True
 
 for checkpoint in [2499, 2400, 2300, 2200, 2100]:
-    for i in range(8):
+    for i in range(1,11):
         # load desired model and adata, then extract model outputs to adata
         new_folder_name = f"onlyoutputs_{dataset_name}_{i}_checkpoint_{checkpoint}"
         if not os.path.isdir(new_folder_name):
-            adata = sc.read_h5ad(f"outputs_{dataset_name}_{i}/pancreas/K11/adata/adata_K11_dt_ve.h5ad")
-            with open(f'outputs_{dataset_name}_{i}/pancreas/K11/trainer/trainer_K11_dt_ve.pkl', 'rb') as file:
+            adata = sc.read_h5ad(f"outputs_{dataset_name}_K{K}_{i}/{dataset_name}/K{K}/adata/adata_K{K}_dt_ve.h5ad")
+            with open(f'outputs_{dataset_name}_K{K}_{i}/{dataset_name}/K{K}/trainer/trainer_K{K}_dt_ve.pkl', 'rb') as file:
                 trainer = pickle.load(file)
 
-            model_path = f"outputs_{dataset_name}_{i}/pancreas/model_checkpoints/model_epoch_{checkpoint}.pt"
+            model_path = f"outputs_{dataset_name}_K{K}_{i}/{dataset_name}/model_checkpoints/model_epoch_{checkpoint}.pt"
             model = VAE(adata, 512, "cpu")
             model = load_model_checkpoint(adata, model, model_path)
             trainer.device = "cpu"

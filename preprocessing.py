@@ -91,8 +91,9 @@ def setup_adata(dataset_name='pancreas',
         #scv.pp.filter_and_normalize(adata, min_shared_counts=20, n_top_genes=n_highly_var_genes) #filter and normalize
         #scv.pp.moments(adata, n_neighbors=smooth_k)
         if dataset_name in ["forebrain"]:
-            sc.pp.neighbors(adata)
-            sc.tl.umap(adata)
+            print("")
+            #sc.pp.neighbors(adata)
+            #sc.tl.umap(adata)
         elif dataset_name in ["dentategyrus_lamanno", "dentategyrus_lamanno_P0", "dentategyrus_lamanno_P5"]:
             adata.obsm["X_umap"] = adata.obsm["X_tsne"].copy()
 
@@ -108,6 +109,7 @@ def setup_adata(dataset_name='pancreas',
         #Annotate part 2
         scv.pp.filter_and_normalize(adata, min_shared_counts=20, n_top_genes=n_highly_var_genes) #filter and normalize
         scv.pp.moments(adata, n_neighbors=smooth_k)
+        sc.tl.umap(adata)
         print(f"adata shape preproc: {adata.shape}")
         select_terms = adata.varm['I'].sum(0) > 12 #remove the terms that contain less than 12 genes AFTER gene filtering
         adata.uns['terms'] = np.array(adata.uns['terms'])[select_terms].tolist()
