@@ -103,4 +103,4 @@ for K in [31,11]:
         bayes_factors(adata, cell_type_key, top_N, dataset_name, K, show_plot=False, save_plot=True)
         estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=show, dataset=dataset_name, K=K)
         save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)"""
-        os.rename("outputs", f"outputs_{dataset_name}_K{K}_{i}")
+        os.rename("outputs", f"outputs_{dataset_name}_K{K}_256_{i}")

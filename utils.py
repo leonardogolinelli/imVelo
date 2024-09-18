@@ -379,7 +379,7 @@ def manifold_and_neighbors(adata, n_components, n_knn_search, dataset_name, K, k
     pca = pca_runner.fit_transform(MuMs)
     pca_unique = PCA(n_components=1).fit_transform(MuMs)
     adata.uns["PCA_weights"] = pca_runner.components_
-    ve_path = f"/mnt/data2/home/leonardo/git/dim_reduction/12_july/embeddings/6layer_{dataset_name}_smooth_K_{ve_layer}.npy"
+    ve_path = f"/mnt/data2/home/leonardo/git/dim_reduction/256/embeddings/6layer_{dataset_name}_smooth_K_{ve_layer}.npy"
     #ve = np.load(f"../dim_reduction/outputs/saved_z_matrices/{dataset_name}_z{ve_layer[0]}.npy")
     ve = np.load(ve_path)
     print(f"ve shape: {ve.shape}")
