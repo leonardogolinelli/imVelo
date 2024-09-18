@@ -85,3 +85,45 @@ p_loss_weight = 1e-1
 split_data = False
 weight_decay = 1e-4
 load_last = True
+
+
+
+
+GASTRULATION ERYTHROID
+
+VE 256 OR NORMAL (SAME OF PANCREAS)
+
+# Preprocessing parameters
+dataset_name = "gastrulation_erythroid"
+preproc_adata = True
+smooth_k = 200
+n_highly_var_genes = 4000
+cell_type_key = "celltype"
+save_umap = False
+show_umap = False
+unspliced_key = "unspliced"
+spliced_key = "spliced"
+filter_on_r2 = False
+knn_rep = "ve"
+n_components = 10
+n_knn_search = 10
+best_key = None
+K = 11
+ve_layer = "None"
+
+# Training parameters
+model_hidden_dim = 512
+K= K
+train_size = 1
+batch_size = 1024
+n_epochs = 2500
+first_regime_end = 2000
+kl_start = 1e-5
+base_lr = 1e-4
+recon_loss_weight = 1
+empirical_loss_weight = 1
+kl_weight_upper = 1e-4
+p_loss_weight = 1e-1
+split_data = False
+weight_decay = 1e-4
+load_last = True

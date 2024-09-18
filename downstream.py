@@ -8,11 +8,11 @@ from plotting import *
 from utils import * 
 
 # Preprocessing parameters
-dataset_name = "forebrain"
+dataset_name = "gastrulation_erythroid"
 preproc_adata = True
 smooth_k = 200
 n_highly_var_genes = 4000
-cell_type_key = "Clusters"
+cell_type_key = "celltype"
 save_umap = False
 show_umap = False
 unspliced_key = "unspliced"
@@ -42,34 +42,36 @@ split_data = False
 weight_decay = 1e-4
 load_last = True
 
-for checkpoint in [2499, 2400, 2300, 2200, 2100, 2000]:
-    for i in range(1,11):
-        # load desired model and adata, then extract model outputs to adata
-        new_folder_name = f"onlyoutputs_{dataset_name}_{i}_checkpoint_{checkpoint}"
-        if not os.path.isdir(new_folder_name):
-            adata = sc.read_h5ad(f"outputs_{dataset_name}_K{K}_{i}/{dataset_name}/K{K}/adata/adata_K{K}_dt_ve.h5ad")
-            with open(f'outputs_{dataset_name}_K{K}_{i}/{dataset_name}/K{K}/trainer/trainer_K{K}_dt_ve.pkl', 'rb') as file:
-                trainer = pickle.load(file)
+for ve_256 in [True, False]:
+    ve_256_str = "256_" if ve_256 else ""
+    for checkpoint in [2499, 2400, 2300, 2200, 2100, 2000, 1999]:
+        for i in range(0,5):
+            # load desired model and adata, then extract model outputs to adata
+            new_folder_name = f"onlyoutputs_{dataset_name}_K{K}_{ve_256_str}{i}_checkpoint_{checkpoint}"
+            if not os.path.isdir(new_folder_name):
+                adata = sc.read_h5ad(f"outputs_{dataset_name}_K{K}_{ve_256_str}{i}/{dataset_name}/K{K}/adata/adata_K{K}_dt_ve.h5ad")
+                with open(f'outputs_{dataset_name}_K{K}_{ve_256_str}{i}/{dataset_name}/K{K}/trainer/trainer_K{K}_dt_ve.pkl', 'rb') as file:
+                    trainer = pickle.load(file)
 
-            model_path = f"outputs_{dataset_name}_K{K}_{i}/{dataset_name}/model_checkpoints/model_epoch_{checkpoint}.pt"
-            model = VAE(adata, 512, "cpu")
-            model = load_model_checkpoint(adata, model, model_path)
-            trainer.device = "cpu"
-            trainer.model = model
-            trainer.adata = adata
-            trainer.self_extract_outputs()
+                model_path = f"outputs_{dataset_name}_K{K}_{ve_256_str}{i}/{dataset_name}/model_checkpoints/model_epoch_{checkpoint}.pt"
+                model = VAE(adata, 512, "cpu")
+                model = load_model_checkpoint(adata, model, model_path)
+                trainer.device = "cpu"
+                trainer.model = model
+                trainer.adata = adata
+                trainer.self_extract_outputs()
 
-            # Rerun downstream of interest
-            #plot_losses(trainer, dataset_name, K,figsize=(20, 10))
-            plot_isomaps(adata, dataset_name, K, cell_type_key)
-            #if backward_velocity:
-            #    self_backward_velocity()
-            plot_embeddings(adata, dataset_name, K, cell_type_key)
-            compute_scvelo_metrics(adata, dataset_name, K, show=False, cell_type_key = cell_type_key)
-            gpvelo_plots(adata, dataset_name, K, cell_type_key)
-            plot_important_genes(adata, dataset_name, K, cell_type_key)
-            deg_genes(adata, dataset_name, K, cell_type_key, n_deg_rows=5)
-            bayes_factors(adata, cell_type_key, top_N=10, dataset=dataset_name, K=K, show_plot=False, save_plot=True)
-            #estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=False, dataset=dataset_name, K=K)
-            #save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)
-            os.rename("outputs", new_folder_name)
+                # Rerun downstream of interest
+                #plot_losses(trainer, dataset_name, K,figsize=(20, 10))
+                plot_isomaps(adata, dataset_name, K, cell_type_key)
+                #if backward_velocity:
+                #    self_backward_velocity()
+                plot_embeddings(adata, dataset_name, K, cell_type_key)
+                compute_scvelo_metrics(adata, dataset_name, K, show=False, cell_type_key = cell_type_key)
+                gpvelo_plots(adata, dataset_name, K, cell_type_key)
+                plot_important_genes(adata, dataset_name, K, cell_type_key)
+                deg_genes(adata, dataset_name, K, cell_type_key, n_deg_rows=5)
+                bayes_factors(adata, cell_type_key, top_N=10, dataset=dataset_name, K=K, show_plot=False, save_plot=True)
+                #estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=False, dataset=dataset_name, K=K)
+                #save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)
+                os.rename("outputs", new_folder_name)
