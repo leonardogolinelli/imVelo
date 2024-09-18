@@ -4,3 +4,9 @@ data
 outputs*
 cache*
 onlyoutputs*
+benchmark/baseline_ml/baseline.h5ad
+benchmark/velocity_correlation/pancreas/*
+benchmark/velocity_confidence/confidences.pkl
+benchmark/scib_metrics/pancreas/benchmark.png
+benchmark/scib_metrics/pancreas/adata_latents.h5ad
+benchmark/velocity_confidence/confidences.png
