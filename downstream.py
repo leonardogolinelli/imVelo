@@ -22,7 +22,7 @@ knn_rep = "ve"
 n_components = 10
 n_knn_search = 10
 best_key = None
-K = 11
+K = 31
 ve_layer = "None"
 
 # Training parameters
@@ -42,24 +42,33 @@ split_data = False
 weight_decay = 1e-4
 load_last = True
 
-for ve_256 in [True, False]:
+for ve_256 in [True]:
     ve_256_str = "256_" if ve_256 else ""
     for checkpoint in [2499, 2400, 2300, 2200, 2100, 2000, 1999]:
-        for i in range(0,5):
+        for i in range(0,2):
+            input_folder_name = f"outputs_{dataset_name}_K{K}_{ve_256_str}isomap_full_{i}"
             # load desired model and adata, then extract model outputs to adata
-            new_folder_name = f"onlyoutputs_{dataset_name}_K{K}_{ve_256_str}{i}_checkpoint_{checkpoint}"
+            new_folder_name = f"outputs_{dataset_name}_K{K}_{ve_256_str}isomap_full_{i}_checkpoint_{checkpoint}"
             if not os.path.isdir(new_folder_name):
-                adata = sc.read_h5ad(f"outputs_{dataset_name}_K{K}_{ve_256_str}{i}/{dataset_name}/K{K}/adata/adata_K{K}_dt_ve.h5ad")
-                with open(f'outputs_{dataset_name}_K{K}_{ve_256_str}{i}/{dataset_name}/K{K}/trainer/trainer_K{K}_dt_ve.pkl', 'rb') as file:
+                adata = sc.read_h5ad(f"{input_folder_name}/{dataset_name}/K{K}/adata/adata_K{K}_dt_isomap.h5ad")
+                with open(f'{input_folder_name}/{dataset_name}/K{K}/trainer/trainer_K{K}_dt_isomap.pkl', 'rb') as file:
                     trainer = pickle.load(file)
 
-                model_path = f"outputs_{dataset_name}_K{K}_{ve_256_str}{i}/{dataset_name}/model_checkpoints/model_epoch_{checkpoint}.pt"
+                model_path = f"{input_folder_name}/{dataset_name}/model_checkpoints/model_epoch_{checkpoint}.pt"
                 model = VAE(adata, 512, "cpu")
                 model = load_model_checkpoint(adata, model, model_path)
                 trainer.device = "cpu"
                 trainer.model = model
                 trainer.adata = adata
                 trainer.self_extract_outputs()
+
+                velocity_u = adata.layers["velocity_u"]
+                velocity = adata.layers["velocity"]
+
+                os.makedirs("outputs", exist_ok=True)
+
+                np.save("outputs/", velocity_u)
+                np.save("outputs/", velocity)
 
                 # Rerun downstream of interest
                 #plot_losses(trainer, dataset_name, K,figsize=(20, 10))

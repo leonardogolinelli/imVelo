@@ -270,10 +270,10 @@ class Trainer:
 
                     print(f"Epoch: {epoch}, train loss: {loss_train}, eval loss: {loss_eval}")
 
-            # Save final losses dictionary
-            final_losses_dic = self.write_final_losses()
-            with open(os.path.join(losses_save_dir, "final_losses.pkl"), 'wb') as f:
-                pickle.dump(final_losses_dic, f)
+        # Save final losses dictionary
+        final_losses_dic = self.write_final_losses()
+        with open(os.path.join(losses_save_dir, "final_losses.pkl"), 'wb') as f:
+            pickle.dump(final_losses_dic, f)
 
         # End timing the training process
         end_time = time.time()
