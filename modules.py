@@ -123,7 +123,6 @@ class KineticsDecoder(nn.Module):
         #u_rate_pos *= self.v0_u[idx]
         #s_rate_pos *= self.v0_s[idx]
 
-
         u_rate_neg = -1 * u_rate_pos
         s_rate_neg = -1 * s_rate_pos
 
