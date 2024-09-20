@@ -64,11 +64,13 @@ for K in [41, 31]:
 
                     velocity_u = adata.layers["velocity_u"]
                     velocity = adata.layers["velocity"]
+                    z = adata.obsm["z"]
 
                     os.makedirs("outputs", exist_ok=True)
 
                     np.save("outputs/velocity_u.npy", velocity_u)
                     np.save("outputs/velocity.npy", velocity)
+                    np.save("outputs/z.npy", z)
 
                     # Rerun downstream of interest
                     #plot_losses(trainer, dataset_name, K,figsize=(20, 10))
