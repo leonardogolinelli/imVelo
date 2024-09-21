@@ -6,6 +6,7 @@ import torch
 from metrics import *
 from plotting import *
 from utils import * 
+import gc
 
 # Preprocessing parameters
 dataset_name = "dentategyrus_lamanno_P5"
@@ -50,6 +51,7 @@ for K in [41, 31]:
                 # load desired model and adata, then extract model outputs to adata
                 new_folder_name = f"onlyoutputs_{input_folder_name}_checkpoint_{checkpoint}"
                 if not os.path.isdir(new_folder_name):
+                    print(f"processing folder: {new_folder_name}")
                     adata = sc.read_h5ad(f"{input_folder_name}/{dataset_name}/K{K}/adata/adata_K{K}_dt_pca.h5ad")
                     with open(f'{input_folder_name}/{dataset_name}/K{K}/trainer/trainer_K{K}_dt_pca.pkl', 'rb') as file:
                         trainer = pickle.load(file)
@@ -86,5 +88,10 @@ for K in [41, 31]:
                     #estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=False, dataset=dataset_name, K=K)
                     #save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)
                     os.rename("outputs", new_folder_name)
+
+                    # Clear memory after each iteration
+                    del adata, trainer, model, velocity_u, velocity, z
+                    gc.collect()
+
                 else:
-                    print("folder does not exist")
+                    print("folder already exists")
