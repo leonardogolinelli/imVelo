@@ -4,13 +4,12 @@ from utils import *
 from plotting import *
 from metrics import * 
 
-
 # Preprocessing parameters
-dataset_name = "dentategyrus_lamanno_P5"
+dataset_name = "gastrulation_erythroid"
 preproc_adata = True
 smooth_k = 200
 n_highly_var_genes = 4000
-cell_type_key = "clusters"
+cell_type_key = "celltype"
 save_umap = False
 show_umap = False
 unspliced_key = "unspliced"
@@ -19,15 +18,15 @@ filter_on_r2 = False
 knn_rep = "pca"
 n_components = 100
 n_knn_search = 10
-best_key = "pca_unique"
-K = 41
+best_key = False
+K = 11
 ve_layer = "None"
 
 # Training parameters
 model_hidden_dim = 512
 K= K
 train_size = 1
-batch_size = 256
+batch_size = 1024
 n_epochs = 5500
 first_regime_end = 5000
 kl_start = 1e-5
@@ -40,7 +39,7 @@ split_data = False
 weight_decay = 1e-4
 load_last = True
 
-for i in range(5):
+for i in range(1):
     new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}"
     if not os.path.isdir(new_folder_name):
         # Run preprocessing

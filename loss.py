@@ -97,7 +97,6 @@ class CustomLoss:
             heuristic_loss_value = 0
             self.uniform_p_loss = 0
 
-
         if self.write_losses:
             return {
                 "recons_loss": recon_loss.cpu().numpy(),
@@ -106,10 +105,8 @@ class CustomLoss:
                 "uniform_p_loss" : uniform_p_loss_value.cpu().numpy()
             }
 
-
         def assert_requires_grad(tensor, name):
             assert tensor.requires_grad, f"{name} does not require gradients"
-
     
         # Apply weights to losses
         recon_loss = self.recon_loss_weight * recon_loss if not learn_kinetics else 0

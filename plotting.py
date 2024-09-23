@@ -370,7 +370,50 @@ def compute_celldeviation_maxstatevelo(adata, dataset, K, cell_type_key):
     scv.pl.velocity_embedding_stream(adata, vkey="new_velo", color=cell_type_key, show=False)
     
     plt.savefig(f"outputs/{dataset}/K{K}/embeddings/max_p_velo.png", bbox_inches='tight')
+
+
+import numpy as np
+
+def compute_velocity_sign_uncertainty(pp, nn, pn, np_matrix, aggregate_method='mean'):
+    """
+    Computes the velocity sign uncertainty at both the cell and gene levels.
+    
+    Parameters:
+        pp: numpy array (cells x genes) - probabilities of positive unspliced and positive spliced RNA velocity.
+        nn: numpy array (cells x genes) - probabilities of negative unspliced and negative spliced RNA velocity.
+        pn: numpy array (cells x genes) - probabilities of positive unspliced and negative spliced RNA velocity.
+        np_matrix: numpy array (cells x genes) - probabilities of negative unspliced and positive spliced RNA velocity.
+        aggregate_method: str - Method to aggregate uncertainties across genes in each cell ('mean' or 'sum').
         
+    Returns:
+        gene_uncertainty: numpy array (genes) - average uncertainty per gene across cells.
+        cell_uncertainty: numpy array (cells) - aggregated uncertainty per cell (mean or sum across genes).
+    """
+    
+    # Stack the probabilities along the third dimension (axis=-1)
+    stacked_matrices = np.stack((pp, nn, pn, np_matrix), axis=-1)
+    
+    # Define uniform probability (0.25 for each velocity sign configuration)
+    uniform_prob = 0.25
+    
+    # Compute the deviation from uniform distribution for each configuration
+    deviation = np.abs(stacked_matrices - uniform_prob)
+    
+    # Sum the deviations across the four configurations (axis=-1 gives sum per gene per cell)
+    cell_gene_uncertainty = np.sum(deviation, axis=-1)
+    
+    # Compute gene-level uncertainty by averaging across cells (axis=0)
+    gene_uncertainty = np.mean(cell_gene_uncertainty, axis=0)
+    
+    # Compute cell-level uncertainty by aggregating across genes for each cell (axis=1)
+    if aggregate_method == 'mean':
+        cell_uncertainty = np.mean(cell_gene_uncertainty, axis=1)
+    elif aggregate_method == 'sum':
+        cell_uncertainty = np.sum(cell_gene_uncertainty, axis=1)
+    else:
+        raise ValueError("Invalid aggregate_method. Use 'mean' or 'sum'.")
+    
+    return gene_uncertainty, cell_uncertainty
 
 def plot_embeddings(adata, dataset, K, cell_type_key="clusters"):
     sc.pp.neighbors(adata)
