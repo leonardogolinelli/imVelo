@@ -8,11 +8,11 @@ from plotting import *
 from utils import * 
 
 # Preprocessing parameters
-dataset_name = "gastrulation_erythroid"
+dataset_name = "forebrain"
 preproc_adata = True
 smooth_k = 200
 n_highly_var_genes = 4000
-cell_type_key = "celltype"
+cell_type_key = "Clusters"
 save_umap = False
 show_umap = False
 unspliced_key = "unspliced"
@@ -30,25 +30,25 @@ model_hidden_dim = 512
 K= K
 train_size = 1
 batch_size = 1024
-n_epochs = 2500
-first_regime_end = 2000
-kl_start = 1e-5
-base_lr = 1e-4
+n_epochs = 5150
+first_regime_end = 5000
+kl_start = 1e-9
+kl_weight_upper = 1e-5
+base_lr = 1e-4 #increased by a factor of 10 for the forebrain dataset
 recon_loss_weight = 1
 empirical_loss_weight = 1
-kl_weight_upper = 1e-4
 p_loss_weight = 1e-1
 split_data = False
 weight_decay = 1e-4
 load_last = True
 
-checkpoints = [2499, 2400, 2300, 2200, 2100, 1999]
-
+checkpoints = [4999, 5100, 5125, 5075, 5050, 5025]
 for checkpoint in checkpoints:
-    adata_path = "outputs_gastrulation_erythroid_K31_256_isomap_full_1/gastrulation_erythroid/K31/adata/adata_K31_dt_isomap.h5ad"
-    model_path = f"outputs_gastrulation_erythroid_K31_256_isomap_full_1/gastrulation_erythroid/model_checkpoints/model_epoch_{checkpoint}.pt"
-    new_folder_name = f"onlyoutputs_gastrulation_erythroid_K31_256_isomap_full_1_checkpoint_{checkpoint}"
-    trainer_path = "outputs_gastrulation_erythroid_K31_256_isomap_full_1/gastrulation_erythroid/K31/trainer/trainer_K31_dt_isomap.pkl"
+    base_path = "outputs_forebrain_K31_knn_rep_ve_best_key_None_0_kl_weight_1e-9_1e-5_lr_1e-2"
+    adata_path = f"{base_path}/{dataset_name}/K{K}/adata/adata_K{K}_dt_{knn_rep}.h5ad"
+    model_path = f"{base_path}/{dataset_name}/model_checkpoints/model_epoch_{checkpoint}.pt"
+    new_folder_name = f"{base_path}_{checkpoint}"
+    trainer_path = f"{base_path}/{dataset_name}/K{K}/trainer/trainer_K{K}_dt_{knn_rep}.pkl"
 
     if not os.path.isdir(new_folder_name):
         adata = sc.read_h5ad(adata_path)
@@ -65,11 +65,14 @@ for checkpoint in checkpoints:
 
         velocity_u = adata.layers["velocity_u"]
         velocity = adata.layers["velocity"]
+        z = adata.obsm["z"]
+
 
         os.makedirs("outputs", exist_ok=True)
 
-        np.save("outputs/", velocity_u)
-        np.save("outputs/", velocity)
+        np.save("outputs/velocity_u.npy", velocity_u)
+        np.save("outputs/velocity.npy", velocity)
+        np.save("outputs/z.npy", z)
 
         # Rerun downstream of interest
         #plot_losses(trainer, dataset_name, K,figsize=(20, 10))

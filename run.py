@@ -5,21 +5,21 @@ from plotting import *
 from metrics import * 
 
 # Preprocessing parameters
-dataset_name = "gastrulation_erythroid"
+dataset_name = "forebrain"
 preproc_adata = True
 smooth_k = 200
 n_highly_var_genes = 4000
-cell_type_key = "celltype"
+cell_type_key = "Clusters"
 save_umap = False
 show_umap = False
 unspliced_key = "unspliced"
 spliced_key = "spliced"
 filter_on_r2 = False
-knn_rep = "pca"
-n_components = 100
+knn_rep = "ve"
+n_components = 10
 n_knn_search = 10
-best_key = False
-K = 11
+best_key = None
+K = 31
 ve_layer = "None"
 
 # Training parameters
@@ -27,20 +27,22 @@ model_hidden_dim = 512
 K= K
 train_size = 1
 batch_size = 1024
-n_epochs = 5500
-first_regime_end = 5000
-kl_start = 1e-5
-base_lr = 1e-4
+n_epochs = 4000
+first_regime_end = 4000
+kl_start = 1e-9
+kl_weight_upper = 1e-6
+base_lr = 1e-4 #increased by a factor of 10 for the forebrain dataset
 recon_loss_weight = 1
 empirical_loss_weight = 1
-kl_weight_upper = 1e-4
 p_loss_weight = 1e-1
 split_data = False
 weight_decay = 1e-4
 load_last = True
 
-for i in range(1):
-    new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}"
+for kl_weight_upper in [1e-8, 1e-7, 1e-6, 1e-5]:
+#for i in range(11):
+    new_folder_name = f"forebrain_kl_upper_{kl_weight_upper}_epoch_4000"
+    #new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_1e-5_lr_1e-2"
     if not os.path.isdir(new_folder_name):
         # Run preprocessing
         adata = setup_adata(dataset_name=dataset_name,
@@ -97,13 +99,11 @@ for i in range(1):
         #if backward_velocity:
         #    self_backward_velocity()
         plot_embeddings(adata, dataset_name, K, cell_type_key)
-        """compute_scvelo_metrics(adata, dataset_name, K, show, cell_type_key = cell_type_key)
+        #compute_scvelo_metrics(adata, dataset_name, K, show, cell_type_key = cell_type_key)
         gpvelo_plots(adata, dataset_name, K, cell_type_key)
-        plot_important_genes(adata, dataset_name, K, cell_type_key)
-        deg_genes(adata, dataset_name, K, cell_type_key, n_deg_rows=5)
-        bayes_factors(adata, cell_type_key, top_N, dataset_name, K, show_plot=False, save_plot=True)
-        estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=show, dataset=dataset_name, K=K)
-        save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)"""
+        #plot_important_genes(adata, dataset_name, K, cell_type_key)
+        #deg_genes(adata, dataset_name, K, cell_type_key, n_deg_rows=5)
+        #bayes_factors(adata, cell_type_key, top_N, dataset_name, K, show_plot=False, save_plot=True)
+        #estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=show, dataset=dataset_name, K=K)
+        save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)
         os.rename("outputs", new_folder_name)
-
-

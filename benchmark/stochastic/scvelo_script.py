@@ -12,7 +12,7 @@ datasets = ["forebrain", "dentategyrus_lamanno"]
 cell_type_keys = ["Clusters", "clusters"]
 
 for dataset, cell_type_key in zip(datasets, cell_type_keys):
-    adata_path = os.path.expanduser(f"~/top_adatas/mivelo_{dataset}.h5ad")
+    adata_path = os.path.expanduser(f"/mnt/data2/home/leonardo/git/multilineage_velocity/outputs_pancreas_K11_knn_rep_ve_best_key_None_0_kl_weight_1e7_1e5/pancreas/K11/adata/adata_K11_dt_ve.h5ad")
     adata = sc.read_h5ad(adata_path)
     if dataset == "forebrain":
         adata.obs[cell_type_key] = [str(name) for name in adata.obs[cell_type_key]]
