@@ -27,11 +27,11 @@ model_hidden_dim = 512
 K= K
 train_size = 1
 batch_size = 1024
-n_epochs = 4000
-first_regime_end = 4000
+n_epochs = 10200
+first_regime_end = 10000
 kl_start = 1e-9
-kl_weight_upper = 1e-6
-base_lr = 1e-4 #increased by a factor of 10 for the forebrain dataset
+kl_weight_upper = 1e-8
+base_lr = 1e-4
 recon_loss_weight = 1
 empirical_loss_weight = 1
 p_loss_weight = 1e-1
@@ -39,10 +39,11 @@ split_data = False
 weight_decay = 1e-4
 load_last = True
 
-for kl_weight_upper in [1e-8, 1e-7, 1e-6, 1e-5]:
-#for i in range(11):
-    new_folder_name = f"forebrain_kl_upper_{kl_weight_upper}_epoch_4000"
-    #new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_1e-5_lr_1e-2"
+#for kl_weight_upper in [1e-9, 1e-8, 1e-7, 1e-6, 1e-5]:
+for i in range(10):
+    #new_folder_name = f"forebrain_kl_upper_{kl_weight_upper}_epoch_20000"
+    #new_folder_name = f"forebrain_20000_firstrregime_0_kl"
+    new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_1e-8"
     if not os.path.isdir(new_folder_name):
         # Run preprocessing
         adata = setup_adata(dataset_name=dataset_name,

@@ -31,11 +31,11 @@ model_hidden_dim = 512
 K= K
 train_size = 1
 batch_size = 1024
-n_epochs = 5500
-first_regime_end = 5000
-kl_start = 1e-7
-kl_weight_upper = 1e-5
-base_lr = 1e-5
+n_epochs = 10200
+first_regime_end = 10000
+kl_start = 1e-9
+kl_weight_upper = 1e-8
+base_lr = 1e-4
 recon_loss_weight = 1
 empirical_loss_weight = 1
 p_loss_weight = 1e-1
@@ -43,12 +43,12 @@ split_data = False
 weight_decay = 1e-4
 load_last = True
 
-for checkpoint in [4999, 5499, 5400, 5300, 5200, 5100, 5000]:
-    for i in range(1):
-        input_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e7_1e5"
+for checkpoint in [10100, 10075, 10125, 10050, 10150, 10025, 10175]:
+    for i in range(10):
+        input_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_1e-8"
         if os.path.isdir(input_folder_name):
             # load desired model and adata, then extract model outputs to adata
-            new_folder_name = f"onlyoutputs_{input_folder_name}_checkpoint_{checkpoint}"
+            new_folder_name = f"{input_folder_name}_checkpoint_{checkpoint}"
             if not os.path.isdir(new_folder_name):
                 print(f"processing folder: {new_folder_name}")
                 adata = sc.read_h5ad(f"{input_folder_name}/{dataset_name}/K{K}/adata/adata_K{K}_dt_{knn_rep}.h5ad")
@@ -98,7 +98,6 @@ for checkpoint in [4999, 5499, 5400, 5300, 5200, 5100, 5000]:
                     # Clear memory after each iteration
                     del adata, trainer, model, velocity_u, velocity, z
                     gc.collect()
-
 
             else:
                 print("folder already exists")

@@ -351,3 +351,4 @@ class Trainer:
         self.model.eval()  # Set model to evaluation mode
         #self.model = self.load_best_model()
         extract_outputs(self.adata, self.model, self.full_data_loader, self.device)
+

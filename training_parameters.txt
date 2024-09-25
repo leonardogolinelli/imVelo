@@ -45,8 +45,6 @@ split_data = False
 weight_decay = 1e-4
 load_last = True
 
-
-
 FOREBRAIN
 
 256 variance encoder neighbors
