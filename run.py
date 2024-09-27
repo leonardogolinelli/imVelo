@@ -4,31 +4,32 @@ from utils import *
 from plotting import *
 from metrics import * 
 
+
 # Preprocessing parameters
-dataset_name = "forebrain"
+dataset_name = "dentategyrus_lamanno_P5"
 preproc_adata = True
 smooth_k = 200
 n_highly_var_genes = 4000
-cell_type_key = "Clusters"
+cell_type_key = "clusters"
 save_umap = False
 show_umap = False
 unspliced_key = "unspliced"
 spliced_key = "spliced"
 filter_on_r2 = False
-knn_rep = "ve"
-n_components = 10
+knn_rep = "pca"
+n_components = 100
 n_knn_search = 10
-best_key = None
-K = 31
+best_key = "pca_unique"
+K = 31 
 ve_layer = "None"
 
 # Training parameters
 model_hidden_dim = 512
 K= K
 train_size = 1
-batch_size = 1024
-n_epochs = 10200
-first_regime_end = 10000
+batch_size = 256
+n_epochs = 20500
+first_regime_end = 20000
 kl_start = 1e-9
 kl_weight_upper = 1e-8
 base_lr = 1e-4
@@ -39,11 +40,10 @@ split_data = False
 weight_decay = 1e-4
 load_last = True
 
-#for kl_weight_upper in [1e-9, 1e-8, 1e-7, 1e-6, 1e-5]:
-for i in range(10):
+for i in range(2):
     #new_folder_name = f"forebrain_kl_upper_{kl_weight_upper}_epoch_20000"
     #new_folder_name = f"forebrain_20000_firstrregime_0_kl"
-    new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_1e-8"
+    new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_{kl_weight_upper}_20k_6000genes"
     if not os.path.isdir(new_folder_name):
         # Run preprocessing
         adata = setup_adata(dataset_name=dataset_name,

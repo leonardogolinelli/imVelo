@@ -45,8 +45,8 @@ def setup_adata(dataset_name='pancreas',
             adata = scv.datasets.pancreas()
         elif dataset_name == "gastrulation_erythroid":
             adata = scv.datasets.gastrulation_erythroid()
-            #adata = adata[adata.obs["stage"]=="E8.25"].copy()
-            #dataset_name +="_E8.25"
+            adata = adata[adata.obs["stage"]=="E8.25"].copy()
+            dataset_name +="_E8.25"
         elif dataset_name == "forebrain":
             adata = scv.datasets.forebrain()
         elif dataset_name == "dentategyrus_lamanno":

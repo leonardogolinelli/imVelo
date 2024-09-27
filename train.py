@@ -219,11 +219,11 @@ class Trainer:
         for param_group in self.optimizer.param_groups:
             if 'tag' in param_group:
                 if param_group['tag'] == 'encoder':
-                    param_group['lr'] = self.base_lr  * (1e-1 if learn_kinetics else 1)
+                    param_group['lr'] = self.base_lr  * (1e-3 if learn_kinetics else 1)
                 elif param_group['tag'] == 'linear_decoder':
-                    param_group['lr'] = self.base_lr  (1e-1 if learn_kinetics else 1)
+                    param_group['lr'] = self.base_lr  (1e-3 if learn_kinetics else 1)
                 elif param_group['tag'] == 'kinetics_decoder':
-                    param_group['lr'] = self.base_lr * (1e-1 if learn_kinetics else 0)
+                    param_group['lr'] = self.base_lr * (1e-3 if learn_kinetics else 0)
                 else:
                     param_group['lr'] = self.base_lr  # Default scaling for other parts
 
@@ -247,7 +247,7 @@ class Trainer:
             loss_eval = self.eval_epoch(learn_kinetics, epoch) if self.split_data else None
 
             if learn_kinetics or epoch == self.first_regime_end-1:
-                if epoch % 25 == 0 or epoch == self.n_epochs - 1 or epoch == self.first_regime_end-1:
+                if epoch % 50 == 0 or epoch == self.n_epochs - 1 or epoch == self.first_regime_end-1:
                     # Save the model
                     model_path = os.path.join(model_save_dir, f"model_epoch_{epoch}.pt")
                     retry = 3

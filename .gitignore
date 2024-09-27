@@ -12,3 +12,4 @@ benchmark/scib_metrics/pancreas/adata_latents.h5ad
 benchmark/velocity_confidence/confidences.png
 forebrain_*
 final_adata_paths.txt
+benchmark/stochastic/__pycache__
