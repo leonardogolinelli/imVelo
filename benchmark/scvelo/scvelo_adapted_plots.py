@@ -89,15 +89,33 @@ def plot_phase_plane(adata, gene_name, u_scale=.01, s_scale=0.01, alpha=0.5, hea
             color=arrow_color, alpha=alpha, head_width=head_width, head_length=head_length, length_includes_head=length_includes_head
         )"""
 
-    # Plot velocity vectors
+    # Check if the velocity data is numeric, and if not, convert it
+    unspliced_velocity_filtered = np.asarray(unspliced_velocity_filtered, dtype=np.float64)
+    spliced_velocity_filtered = np.asarray(spliced_velocity_filtered, dtype=np.float64)
+
+    # Inspect the filtered velocities and check the data type
     for i in range(len(unspliced_expression_filtered)):
+        # Check the types
+        print(f"unspliced_velocity_filtered[{i}] type: {type(unspliced_velocity_filtered[i])}")
+        print(f"spliced_velocity_filtered[{i}] type: {type(spliced_velocity_filtered[i])}")
+        
+        # Try to cast to float and handle possible issues
+        try:
+            unspliced_vel = float(unspliced_velocity_filtered[i])
+            spliced_vel = float(spliced_velocity_filtered[i])
+        except ValueError:
+            print(f"Non-numeric value encountered at index {i}. Skipping this point.")
+            continue
+        
+        # Proceed with plotting
         cell_type_index = np.where(unique_cell_types == cell_types_filtered[i])[0][0]
         arrow_color = celltype_to_color[cell_types_filtered[i]]  # Use the color corresponding to the cell type
         plt.arrow(
             spliced_expression_filtered[i], unspliced_expression_filtered[i], 
-            spliced_velocity_filtered[i] * s_scale, unspliced_velocity_filtered[i] * u_scale, 
+            spliced_vel * s_scale, unspliced_vel * u_scale, 
             color=arrow_color, alpha=alpha, head_width=head_width, head_length=head_length, length_includes_head=length_includes_head
         )
+
 
     plt.ylabel(f'Normalized Unspliced Expression of {gene_name}')
     plt.xlabel(f'Normalized Spliced Expression of {gene_name}')
@@ -107,8 +125,6 @@ def plot_phase_plane(adata, gene_name, u_scale=.01, s_scale=0.01, alpha=0.5, hea
     patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=celltype_to_color[celltype], markersize=10, label=celltype) 
             for celltype in unique_cell_types]
     plt.legend(handles=patches, title="Cell Type", bbox_to_anchor=(1.05, 1), loc='upper left')
-
-    
 
     if save_plot:
         plt.savefig(save_path, format='png', bbox_inches='tight', pad_inches=0.1)

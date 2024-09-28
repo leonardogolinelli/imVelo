@@ -13,3 +13,12 @@ benchmark/velocity_confidence/confidences.png
 forebrain_*
 final_adata_paths.txt
 benchmark/stochastic/__pycache__
+benchmark/stochastic/forebrain/*
+benchmark/stochastic/pancreas/*
+benchmark/stochastic/gastrulation_erythroid/*
+benchmark/stochastic/dentategyrus_lamanno_P5/*
+benchmark/scvelo/__pycache__
+benchmark/scvelo/forebrain/*
+benchmark/scvelo/pancreas/*
+benchmark/scvelo/gastrulation_erythroid/*
+benchmark/scvelo/dentategyrus_lamanno_P5/*

@@ -49,7 +49,7 @@ checkpoints.append(19999)
 
 for checkpoint in checkpoints:
     for i in range(2):
-        input_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_{kl_weight_upper}_20k_12_july"
+        input_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_{kl_weight_upper}_20k_256"
         if os.path.isdir(input_folder_name):
             # load desired model and adata, then extract model outputs to adata
             new_folder_name = f"{input_folder_name}_checkpoint_{checkpoint}"
