@@ -6,7 +6,7 @@ from metrics import *
 
 
 # Preprocessing parameters
-dataset_name = "dentategyrus_lamanno_P5"
+dataset_name = "forebrain"
 preproc_adata = True
 smooth_k = 200
 n_highly_var_genes = 4000
@@ -42,8 +42,8 @@ load_last = True
 
 for i in range(2):
     #new_folder_name = f"forebrain_kl_upper_{kl_weight_upper}_epoch_20000"
-    #new_folder_name = f"forebrain_20000_firstrregime_0_kl"
-    new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_{kl_weight_upper}_20k_6000genes"
+    new_folder_name = f"forebrain_test"
+    #new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_{kl_weight_upper}_20k_6000genes"
     if not os.path.isdir(new_folder_name):
         # Run preprocessing
         adata = setup_adata(dataset_name=dataset_name,
