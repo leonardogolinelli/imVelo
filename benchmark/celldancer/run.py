@@ -1,33 +1,34 @@
 import numpy as np
 import pandas as pd
 import scanpy as sc
+import scvelo as scv
 import os
 import gc
+from benchmark_preprocessing import preprocess
 
+datasets = ["forebrain", "pancreas", "gastrulation_erythroid",  "dentategyrus_lamanno_P5"]
+cell_type_keys = ["Clusters", "clusters","celltype",  "clusters"]
+generate_adata = True #celldancer environment
+adata_to_df = False
+downstream = False
+n_highly_var_genes = 2000
+smooth_k = 30
 
-#datasets = ["pancreas", "gastrulation_erythroid", "forebrain"]
-#cell_type_keys = ["clusters","celltype", "Clusters"]
-generate_adata = True
-datasets = ["dentategyrus_lamanno"]
-cell_type_keys = ["clusters"]
+#datasets = ["forebrain"]
+#cell_type_keys = ["Clusters"]
 
 #celldancer environment path
 if generate_adata:
-    import celldancer as cd
-    import celldancer.utilities as cdutil
     for dataset, cell_type_key in zip(datasets, cell_type_keys):
         print(f"processing dataset: {dataset}")
         os.makedirs(dataset, exist_ok=True)
+        adata = preprocess(dataset, cell_type_key, n_highly_var_genes, smooth_k)
+        adata.write_h5ad(f"{dataset}/celldancer_{dataset}")
 
-        adata_path = os.path.expanduser(f"~/top_adatas/mivelo_{dataset}.h5ad")
-        adata = sc.read_h5ad(adata_path)
-        if dataset == "forebrain":
-            adata.obs[cell_type_key] = [str(name) for name in adata.obs[cell_type_key]]
-            adata.obs[cell_type_key] = pd.Series(adata.obs[cell_type_key], dtype="category")
-
-        del adata.layers["velocity"]
-        del adata.layers["velocity_u"]
-
+if adata_to_df:
+    import celldancer as cd
+    import celldancer.utilities as cdutil
+    for dataset, cell_type_key in zip(datasets, cell_type_keys):
         cdutil.adata_to_df_with_embed(adata,
                                 us_para=['Mu','Ms'],
                                 cell_type_para=cell_type_key,
@@ -37,13 +38,12 @@ if generate_adata:
         df = pd.read_csv(f"{dataset}/cd_df.csv")
         df["cellIndex"] = df.cellID
         
-        
         loss_df_velo, cd_df_velo = cd.velocity(df,\
                     gene_list=None,\
                     permutation_ratio=0.125,\
                     n_jobs=1,
                     speed_up=False)
-        
+
         cd_df_velo.to_csv(f"{dataset}/cd_df_velo.csv")
         print(f"cd_df succesfully written to path {dataset}/cd_df_velo.csv")
         loss_df_velo.to_csv(f"{dataset}/loss_df_velo.csv")
@@ -81,9 +81,9 @@ if generate_adata:
         gc.collect()
         adata.write_h5ad(f"{dataset}/cd_{dataset}.h5ad")
 
-
+downstream = False
 #scvelo environment part
-else:
+if downstream:
     datasets = ["dentategyrus_lamanno"]
     cell_type_keys = ["clusters"]
     import scvelo as scv
