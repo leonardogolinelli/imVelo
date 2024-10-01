@@ -44,3 +44,4 @@ benchmark/celldancer/dentategyrus_lamanno_P5/*
 benchmark/velovi/dentategyrus_lamanno_P5_filtered/velovi_dentategyrus_lamanno_P5_filtered.h5ad
 benchmark/velovi/gastrulation_erythroid_filtered/velovi_gastrulation_erythroid_filtered.h5ad
 benchmark/velovi/pancreas_filtered/velovi_pancreas_filtered.h5ad
+benchmark/celldancer/cellDancer_*
