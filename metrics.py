@@ -347,8 +347,8 @@ def deg_genes(adata, dataset, K, cell_type_key="clusters", n_deg_rows=5):
 def compute_scvelo_metrics(adata, dataset, K, show=False, cell_type_key="clusters"):
     print("computing scvelo metrics..")
     scv.tl.velocity_confidence(adata)
-    if dataset not in ["dentategyrus_lamanno", "dentategyrus_lamanno_P0", "dentategyrus_lamanno_P5", "gastrulation_erythroid"]:
-        scv.tl.velocity_pseudotime(adata)
+    #if dataset not in ["dentategyrus_lamanno", "dentategyrus_lamanno_P0", "dentategyrus_lamanno_P5", "gastrulation_erythroid"]:
+    scv.tl.velocity_pseudotime(adata)
 
     confidence_path = f"outputs/{dataset}/K{K}/scvelo_metrics/confidence/"
     s_genes_path = f"outputs/{dataset}/K{K}/scvelo_metrics/s_genes/"
@@ -358,8 +358,8 @@ def compute_scvelo_metrics(adata, dataset, K, show=False, cell_type_key="cluster
 
     keys = [cell_type_key, 'velocity_length', 'velocity_confidence', 'velocity_pseudotime']
     cmaps = [None, 'coolwarm', 'coolwarm', 'gnuplot', 'gnuplot']
-    if dataset in ["dentategyrus_lamanno", "dentategyrus_lamanno_P0", "dentategyrus_lamanno_P5", "gastrulation_erythroid"]:
-        keys = keys[:-2]         
+    #if dataset in ["dentategyrus_lamanno", "dentategyrus_lamanno_P0", "dentategyrus_lamanno_P5", "gastrulation_erythroid"]:
+    #    keys = keys[:-2]         
     for i, key in enumerate(keys):
         sc.pl.umap(adata, color=key, color_map=cmaps[i], show=show)
         plt.tight_layout()

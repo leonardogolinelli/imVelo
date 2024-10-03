@@ -211,10 +211,30 @@ def gpvelo_plots(adata, dataset, K, cell_type_key):
 
     scv.tl.velocity_confidence(adata_gp)
     
-    if not dataset in ["dentategyrus_lamanno", "dentategyrus_lamanno_P0", "dentategyrus_lamanno_P5", "gastrulation_erythroid"]:
-        scv.tl.velocity_pseudotime(adata_gp)
-        sc.pl.umap(adata_gp, color=["velocity_confidence"], color_map="coolwarm")
-        
+    #if not dataset in ["dentategyrus_lamanno", "dentategyrus_lamanno_P0", "dentategyrus_lamanno_P5", "gastrulation_erythroid"]:
+    scv.tl.velocity_pseudotime(adata_gp)
+    sc.pl.umap(adata_gp, color=["velocity_confidence"], color_map="coolwarm")
+    
+    plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_confidence.png", bbox_inches='tight')
+    plt.close()
+
+    sc.pl.umap(adata_gp, color=["velocity_length"], color_map="coolwarm")
+    
+    plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_length.png", bbox_inches='tight')
+    plt.close()
+
+    sc.pl.umap(adata_gp, color=["velocity_pseudotime"], color_map="gnuplot")
+    
+    plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_pseudotime.png", bbox_inches='tight')
+    plt.close()
+
+    scv.tl.rank_velocity_genes(adata_gp, groupby=cell_type_key)
+    scv.pl.rank_genes_groups(adata_gp, ncols=2, key="rank_velocity_genes")    
+    
+    plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_deg.png", bbox_inches='tight')
+    plt.close()
+
+    """else:        
         plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_confidence.png", bbox_inches='tight')
         plt.close()
 
@@ -223,31 +243,11 @@ def gpvelo_plots(adata, dataset, K, cell_type_key):
         plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_length.png", bbox_inches='tight')
         plt.close()
 
-        sc.pl.umap(adata_gp, color=["velocity_pseudotime"], color_map="gnuplot")
-        
-        plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_pseudotime.png", bbox_inches='tight')
-        plt.close()
-
         scv.tl.rank_velocity_genes(adata_gp, groupby=cell_type_key)
         scv.pl.rank_genes_groups(adata_gp, ncols=2, key="rank_velocity_genes")    
         
         plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_deg.png", bbox_inches='tight')
-        plt.close()
-
-    else:        
-        plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_confidence.png", bbox_inches='tight')
-        plt.close()
-
-        sc.pl.umap(adata_gp, color=["velocity_length"], color_map="coolwarm")
-        
-        plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_length.png", bbox_inches='tight')
-        plt.close()
-
-        scv.tl.rank_velocity_genes(adata_gp, groupby=cell_type_key)
-        scv.pl.rank_genes_groups(adata_gp, ncols=2, key="rank_velocity_genes")    
-        
-        plt.savefig(f"outputs/{dataset}/K{K}/gpvelo/gpvelo_deg.png", bbox_inches='tight')
-        plt.close()        
+        plt.close()  """      
     
 
     adata_gp.var_names = [term.replace("/", "-") for term in list(adata_gp.var_names)]
@@ -374,7 +374,7 @@ def compute_celldeviation_maxstatevelo(adata, dataset, K, cell_type_key):
 
 import numpy as np
 
-def compute_velocity_sign_uncertainty(pp, nn, pn, np_matrix, aggregate_method='mean'):
+def compute_velocity_sign_uncertainty(adata, aggregate_method='mean'):
     """
     Computes the velocity sign uncertainty at both the cell and gene levels.
     
@@ -389,7 +389,12 @@ def compute_velocity_sign_uncertainty(pp, nn, pn, np_matrix, aggregate_method='m
         gene_uncertainty: numpy array (genes) - average uncertainty per gene across cells.
         cell_uncertainty: numpy array (cells) - aggregated uncertainty per cell (mean or sum across genes).
     """
-    
+
+    pp = adata.layers["pp"]
+    nn = adata.layers["nn"]
+    pn = adata.layers["pn"]
+    np_matrix = adata.layers["np"]
+
     # Stack the probabilities along the third dimension (axis=-1)
     stacked_matrices = np.stack((pp, nn, pn, np_matrix), axis=-1)
     
@@ -413,7 +418,8 @@ def compute_velocity_sign_uncertainty(pp, nn, pn, np_matrix, aggregate_method='m
     else:
         raise ValueError("Invalid aggregate_method. Use 'mean' or 'sum'.")
     
-    return gene_uncertainty, cell_uncertainty
+    adata.uns["p_gene_uncertainty"] = gene_uncertainty
+    adata.uns["p_cell_uncertainty"] = cell_uncertainty
 
 def plot_embeddings(adata, dataset, K, cell_type_key="clusters"):
     sc.pp.neighbors(adata)

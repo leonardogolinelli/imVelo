@@ -35,7 +35,11 @@ benchmark/ivelo/__pycache__
 benchmark/ivelo/forebrain/*
 benchmark/ivelo/pancreas/*
 benchmark/ivelo/gastrulation_erythroid/*
+benchmark/ivelo/gastrulation_erythroid_filtered/*
 benchmark/ivelo/dentategyrus_lamanno_P5/*
+benchmark/ivelo/forebrain_filtered/*
+benchmark/ivelo/pancreas_filtered/*
+benchmark/ivelo/dentategyrus_lamanno_P5_filtered/*
 benchmark/celldancer/__pycache__
 benchmark/celldancer/forebrain/*
 benchmark/celldancer/pancreas/*
@@ -45,3 +49,8 @@ benchmark/velovi/dentategyrus_lamanno_P5_filtered/velovi_dentategyrus_lamanno_P5
 benchmark/velovi/gastrulation_erythroid_filtered/velovi_gastrulation_erythroid_filtered.h5ad
 benchmark/velovi/pancreas_filtered/velovi_pancreas_filtered.h5ad
 benchmark/celldancer/cellDancer_*
+pancreas
+forebrain
+gastrulation_erythroid
+dentategyrus_lamanno_P5
+/benchmark/write_matrices.ipynb

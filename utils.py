@@ -466,3 +466,183 @@ def load_model_checkpoint(adata, model, model_path):
 
     print("Model checkpoint loaded successfully.")
     return model
+
+
+def get_parameters(dataset_name, learn_kinetics):
+    # Common parameters
+    preproc_adata = True
+    save_umap = False
+    show_umap = False
+    unspliced_key = "unspliced"
+    spliced_key = "spliced"
+    filter_on_r2 = False
+    n_knn_search = 10
+    ve_layer = "None"
+    split_data = False
+    weight_decay = 1e-4
+    load_last = True
+    train_size = 1
+    recon_loss_weight = 1
+    empirical_loss_weight = 1
+    p_loss_weight = 1e-1
+    kl_start = 1e-9
+    kl_weight_upper = 1e-8
+
+    # Parameters dependent on the dataset
+    if dataset_name == "pancreas":
+        # Preprocessing parameters
+        smooth_k = 200
+        n_highly_var_genes = 4000
+        cell_type_key = "clusters"
+        knn_rep = "ve"
+        n_components = 10
+        best_key = None
+        K = 11
+
+        # Training parameters
+        model_hidden_dim = 512
+        batch_size = 256
+        n_epochs = 10400
+        first_regime_end = 10000
+        base_lr = 1e-4
+
+        # Learning rate adjustments for optimizer param groups
+        optimizer_lr_factors = {
+            'encoder': 1e-1 if learn_kinetics else 1,
+            'linear_decoder': 1e-1 if learn_kinetics else 1,
+            'kinetics_decoder': 1e-1 if learn_kinetics else 0
+        }
+
+    elif dataset_name == "forebrain":
+        # Preprocessing parameters
+        smooth_k = 200
+        n_highly_var_genes = 6000
+        cell_type_key = "Clusters"
+        knn_rep = "ve"
+        n_components = 10
+        best_key = None
+        K = 11
+
+        # Training parameters
+        model_hidden_dim = 512
+        batch_size = 1720
+        n_epochs = 20100
+        first_regime_end = 20000
+        base_lr = 1e-4
+
+        # Learning rate adjustments for optimizer param groups
+        optimizer_lr_factors = {
+            'encoder': 1e-3 if learn_kinetics else 1,
+            'linear_decoder': 1e-3 if learn_kinetics else 1,
+            'kinetics_decoder': 1e-3 if learn_kinetics else 0
+        }
+
+    elif dataset_name == "gastrulation_erythroid":
+        # Preprocessing parameters
+        smooth_k = 200
+        n_highly_var_genes = 4000
+        cell_type_key = "celltype"
+        knn_rep = "ve"
+        n_components = 10
+        best_key = None
+        K = 11
+
+        # Training parameters
+        model_hidden_dim = 512
+        batch_size = 1024
+        n_epochs = 20500
+        first_regime_end = 20000
+        base_lr = 1e-4
+
+        # Learning rate adjustments for optimizer param groups
+        optimizer_lr_factors = {
+            'encoder': 1e-3 if learn_kinetics else 1,
+            'linear_decoder': 1e-3 if learn_kinetics else 1,
+            'kinetics_decoder': 1e-3 if learn_kinetics else 0
+        }
+
+    elif dataset_name == "dentategyrus_lamanno_P5":
+        # Preprocessing parameters
+        smooth_k = 200
+        n_highly_var_genes = 4000
+        cell_type_key = "clusters"
+        knn_rep = "pca"
+        n_components = 100
+        best_key = "pca_unique"
+        K = 31
+
+        # Training parameters
+        model_hidden_dim = 512
+        batch_size = 256
+        n_epochs = 20500
+        first_regime_end = 20000
+        base_lr = 1e-4
+
+        # Learning rate adjustments for optimizer param groups
+        optimizer_lr_factors = {
+            'encoder': 1 if learn_kinetics else 1,
+            'linear_decoder': 1 if learn_kinetics else 1,
+            'kinetics_decoder': 1 if learn_kinetics else 0
+        }
+
+    else:
+        raise ValueError(f"Unknown dataset: {dataset_name}")
+
+    # Compile all parameters into a dictionary
+    parameters = {
+        # Preprocessing parameters
+        'dataset_name': dataset_name,
+        'preproc_adata': preproc_adata,
+        'smooth_k': smooth_k,
+        'n_highly_var_genes': n_highly_var_genes,
+        'cell_type_key': cell_type_key,
+        'save_umap': save_umap,
+        'show_umap': show_umap,
+        'unspliced_key': unspliced_key,
+        'spliced_key': spliced_key,
+        'filter_on_r2': filter_on_r2,
+        'knn_rep': knn_rep,
+        'n_components': n_components,
+        'n_knn_search': n_knn_search,
+        'best_key': best_key,
+        'K': K,
+        've_layer': ve_layer,
+
+        # Training parameters
+        'model_hidden_dim': model_hidden_dim,
+        'train_size': train_size,
+        'batch_size': batch_size,
+        'n_epochs': n_epochs,
+        'first_regime_end': first_regime_end,
+        'kl_start': kl_start,
+        'kl_weight_upper': kl_weight_upper,
+        'base_lr': base_lr,
+        'recon_loss_weight': recon_loss_weight,
+        'empirical_loss_weight': empirical_loss_weight,
+        'p_loss_weight': p_loss_weight,
+        'split_data': split_data,
+        'weight_decay': weight_decay,
+        'load_last': load_last,
+
+        # Optimizer learning rate adjustments
+        'optimizer_lr_factors': optimizer_lr_factors
+    }
+
+    return parameters
+
+
+def add_cell_types_to_adata(adata):
+    cluster_to_cell_type = {
+    '0': 'Radial Glia 1',
+    '1': 'Radial Glia 2',
+    '2': 'Neuroblast 1',
+    '3': 'Neuroblast 2',
+    '4': 'Immature Neuron 1',
+    '5': 'Immature Neuron 2',
+    '6': 'Neuron'
+    }
+
+    # Example of mapping clusters to cell types in your dataset
+    adata.obs['Clusters'] = adata.obs['Clusters'].map(cluster_to_cell_type)
+
+    return adata

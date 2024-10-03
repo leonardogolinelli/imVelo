@@ -16,7 +16,11 @@ n_highly_var_genes = 2000
 smooth_k = 30
 datasets = ["forebrain", "pancreas", "gastrulation_erythroid", "dentategyrus_lamanno_P5"]
 cell_type_keys = ["Clusters", "clusters","celltype", "clusters"]
-filter_genes = [False]
+
+filter_genes = [True, False]
+datasets = ["forebrain"]
+cell_type_keys = ["Clusters"]
+
 
 for filtered in filter_genes:
     for dataset, cell_type_key in zip(datasets, cell_type_keys):

@@ -5,7 +5,7 @@ import scipy.sparse as sp
 
 def preprocess(dataset_name):
     if dataset_name == "forebrain":
-        adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/outputs_forebrain_K11_knn_rep_ve_best_key_None_0_kl_weight_1e-9_1e-08_20k/forebrain/K11/adata/adata_K11_dt_ve.h5ad"
+        adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/benchmark/imVelo/imVelo_forebrain/forebrain/K11/adata/adata_K11_dt_ve.h5ad"
         adata = sc.read_h5ad(adata_path)
         
         # Convert layers to float32 and ensure sparse matrices are correctly cast

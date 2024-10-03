@@ -10,8 +10,8 @@ generate_adata = False #celldancer environment
 compute_velocity = False
 downstream = True
 
-#datasets = ["dentategyrus_lamanno_P5"]
-#cell_type_keys = ["clusters"]
+datasets = ["forebrain"]
+cell_type_keys = ["Clusters"]
 
 #celldancer environment path
 if generate_adata:
@@ -23,8 +23,8 @@ if generate_adata:
         adata.write_h5ad(f"{dataset}/cd_{dataset}.h5ad")
 
 if compute_velocity:
-        datasets = ["dentategyrus_lamanno_P5"]
-        cell_type_keys = ["clusters"]
+        datasets = ["forebrain"]
+        cell_type_keys = ["Clusters"]
         import celldancer as cd
         import celldancer.utilities as cdutil
         for dataset, cell_type_key in zip(datasets, cell_type_keys):
@@ -35,26 +35,26 @@ if compute_velocity:
                                     embed_para='X_umap',
                                     save_path=f"{dataset}/cd_df.csv")"""
             
-            df = pd.read_csv(f"{dataset}/cd_df.csv")
+            """df = pd.read_csv(f"{dataset}/cd_df.csv")
             df["cellIndex"] = df.cellID
             permutation_ratio = 0.125 #if not dataset == "dentategyrus_lamanno_P5" else 0.05
             loss_df_velo, cd_df_velo = cd.velocity(df,\
                         gene_list=None,\
                         permutation_ratio=permutation_ratio,\
-                        n_jobs=20,
+                        n_jobs=1,
                         speed_up=False)
 
             cd_df_velo.to_csv(f"{dataset}/cd_df_velo.csv")
             print(f"cd_df succesfully written to path {dataset}/cd_df_velo.csv")
             loss_df_velo.to_csv(f"{dataset}/loss_df_velo.csv")
-            print(f"loss_df succesfully written to path {dataset}/loss_df_velo.csv")
+            print(f"loss_df succesfully written to path {dataset}/loss_df_velo.csv")"""
 
             # Initialize velocity layers with zeros
             adata.layers["velocity"] = np.zeros(adata.shape)
             adata.layers["velocity_u"] = np.zeros(adata.shape)
 
             #cd_df_velo = pd.read_csv(f"{dataset}/cd_df_velo.csv")
-
+            cd_df_velo = pd.read_csv(f"{dataset}/cd_df_velo.csv")
             # Iterate over the DataFrame and update the layers
             for i, cell_idx in enumerate(cd_df_velo.cellIndex):
                 gene_name = cd_df_velo.gene_name[i]
@@ -79,13 +79,15 @@ if compute_velocity:
             print(adata)
             # Save the updated AnnData object
             gc.collect()
-            adata.write_h5ad(f"{dataset}/cd_{dataset}.h5ad")
+            adata.write_h5ad(f"{dataset}/celldancer_{dataset}.h5ad")
 
 #scvelo environment part
 if downstream:
     import scvelo as scv
     from celldancer_adapted_metrics import compute_scvelo_metrics, deg_genes
     from celldancer_adapted_plots import plot_important_genes
+    datasets = ["forebrain"]
+    cell_type_keys = ["Clusters"]
     for dataset, cell_type_key in zip(datasets, cell_type_keys):
         print(f"processing dataset: {dataset}")
         os.makedirs(dataset, exist_ok=True)
@@ -96,9 +98,9 @@ if downstream:
         sc.pp.neighbors(adata)
         scv.tl.velocity_graph(adata)
         compute_scvelo_metrics(adata, dataset, False, cell_type_key)
-        adata.write_h5ad(f"{dataset}/cd_{dataset}_final.h5ad")
+        adata.write_h5ad(f"{dataset}/celldancer_{dataset}_final.h5ad")
         deg_genes(adata, dataset, cell_type_key=cell_type_key, n_deg_rows=1)
-        adata.write_h5ad(f"{dataset}/cd_{dataset}_final.h5ad")
+        adata.write_h5ad(f"{dataset}/celldancer_{dataset}_final.h5ad")
         plot_important_genes(adata, dataset, cell_type_key)
 
         # Clean up

@@ -58,3 +58,21 @@ def return_gnames():
         "Pyy"
     ]
     return gnames
+
+
+
+def add_cell_types_to_adata(adata):
+    cluster_to_cell_type = {
+    '0': 'Radial Glia 1',
+    '1': 'Radial Glia 2',
+    '2': 'Neuroblast 1',
+    '3': 'Neuroblast 2',
+    '4': 'Immature Neuron 1',
+    '5': 'Immature Neuron 2',
+    '6': 'Neuron'
+    }
+
+    # Example of mapping clusters to cell types in your dataset
+    adata.obs['Clusters'] = adata.obs['Clusters'].map(cluster_to_cell_type)
+
+    return adata

@@ -13,9 +13,8 @@ smooth_k = 30
 #datasets = ["forebrain", "pancreas", "gastrulation_erythroid", "dentategyrus_lamanno_P5"]
 #cell_type_keys = ["Clusters", "clusters","celltype", "clusters"]
 
-datasets = ["dentategyrus_lamanno_P5"]
-cell_type_keys = ["clusters"]
-
+datasets = ["forebrain"]
+cell_type_keys = ["Clusters"]
 
 for dataset, cell_type_key in zip(datasets, cell_type_keys):
     adata = preprocess(dataset, cell_type_key, n_highly_var_genes, smooth_k)

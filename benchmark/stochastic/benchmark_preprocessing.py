@@ -2,6 +2,7 @@ import scanpy as sc
 import scvelo as scv
 import pandas as pd
 import seaborn as sns
+from utils import add_cell_types_to_adata
 
 def preprocess(
     dataset_name,
@@ -10,7 +11,7 @@ def preprocess(
     smooth_k,
     ):
         if dataset_name == "forebrain":
-            adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/outputs_forebrain_K11_knn_rep_ve_best_key_None_0_kl_weight_1e-9_1e-08_20k/forebrain/K11/adata/adata_K11_dt_ve.h5ad"
+            adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/benchmark/imVelo/imVelo_forebrain/forebrain/K11/adata/adata_K11_dt_ve.h5ad"
         elif dataset_name == "pancreas":
             adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/outputs_pancreas_K11_knn_rep_ve_best_key_None_0_kl_weight_1e-9_1e-8/pancreas/K11/adata/adata_K11_dt_ve.h5ad"
         elif dataset_name == "gastrulation_erythroid":
