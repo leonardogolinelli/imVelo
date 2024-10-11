@@ -5,7 +5,7 @@ from plotting import *
 from metrics import * 
 
 # Preprocessing parameters
-dataset_name = "forebrain"
+dataset_name = "pancreas"
 preproc_adata = True
 smooth_k = 200
 n_highly_var_genes = 4000
@@ -15,37 +15,48 @@ show_umap = False
 unspliced_key = "unspliced"
 spliced_key = "spliced"
 filter_on_r2 = False
-knn_rep = "pca"
-n_components = 100
+knn_rep = "ve"
+n_components = 10
 n_knn_search = 10
-best_key = "pca_unique"
-K = 31 
+best_key = None
+K = 11
 ve_layer = "None"
+ve_hidden_nodes = "12_july"
 
 # Training parameters
 model_hidden_dim = 512
 K= K
 train_size = 1
 batch_size = 256
-n_epochs = 20500
-first_regime_end = 20000
+n_epochs = 2500
+first_regime_end = 2000
 kl_start = 1e-9
 kl_weight_upper = 1e-8
 base_lr = 1e-4
 recon_loss_weight = 1
 empirical_loss_weight = 1
-p_loss_weight = 1e-1
+p_loss_weight = 1e-1 ########################### TESTING 0 instead of 1e-1
 split_data = False
 weight_decay = 1e-4
 load_last = True
 
-for i in range(2):
+datasets = ["forebrain", "pancreas", "gastrulation_erythroid", "dentategyrus_lamanno_P5"]
+cell_type_keys = ["Clusters", "clusters","celltype", "clusters"]
+K_vals = [11,11,11,31]
+
+datasets = ["forebrain"]
+cell_type_keys = ["Clusters"]
+K_vals = [11]
+batch_size = 1720
+n_highly_var_genes = 6000
+
+for dataset_name, cell_type_key, K in zip(datasets, cell_type_keys, K_vals):
     #new_folder_name = f"forebrain_kl_upper_{kl_weight_upper}_epoch_20000"
-    new_folder_name = f"forebrain_test"
+    new_folder_name = f"{dataset_name}_test_1"
     #new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_{kl_weight_upper}_20k_6000genes"
     if not os.path.isdir(new_folder_name):
         # Run preprocessing
-        adata = setup_adata(dataset_name=dataset_name,
+        """adata = setup_adata(dataset_name=dataset_name,
                                 preproc_adata=preproc_adata,
                                 smooth_k=smooth_k,
                                 n_highly_var_genes=n_highly_var_genes,
@@ -60,7 +71,13 @@ for i in range(2):
                                 n_knn_search=n_knn_search,
                                 best_key=best_key,
                                 K = K,
-                                ve_layer= ve_layer)
+                                ve_layer= ve_layer,
+                                ve_hidden_nodes=ve_hidden_nodes)"""
+
+        adata = preprocess(dataset_name)
+        distances, indices = manifold_and_neighbors(adata, n_components, n_knn_search, dataset_name, K, knn_rep, best_key, ve_layer, ve_hidden_nodes)
+        adata.uns["distances"] = distances
+        adata.uns["indices"] = indices
 
         ### Initialize Trainer and run
         trainer = Trainer(
@@ -96,14 +113,14 @@ for i in range(2):
 
         plot_losses(trainer, dataset_name, K,figsize=(20, 10))
         plot_isomaps(adata, dataset_name, K, cell_type_key)
-        #if backward_velocity:
-        #    self_backward_velocity()
+        if dataset_name == "forebrain":
+            adata = backward_velocity(adata)
         plot_embeddings(adata, dataset_name, K, cell_type_key)
-        #compute_scvelo_metrics(adata, dataset_name, K, show, cell_type_key = cell_type_key)
+        compute_scvelo_metrics(adata, dataset_name, K, show, cell_type_key = cell_type_key)
         gpvelo_plots(adata, dataset_name, K, cell_type_key)
-        #plot_important_genes(adata, dataset_name, K, cell_type_key)
-        #deg_genes(adata, dataset_name, K, cell_type_key, n_deg_rows=5)
-        #bayes_factors(adata, cell_type_key, top_N, dataset_name, K, show_plot=False, save_plot=True)
+        plot_important_genes(adata, dataset_name, K, cell_type_key)
+        deg_genes(adata, dataset_name, K, cell_type_key, n_deg_rows=5)
+        bayes_factors(adata, cell_type_key, top_N, dataset_name, K, show_plot=False, save_plot=True)
         #estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=show, dataset=dataset_name, K=K)
         save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)
         os.rename("outputs", new_folder_name)

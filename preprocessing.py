@@ -23,7 +23,8 @@ def setup_adata(dataset_name='pancreas',
                 n_knn_search=10,
                 best_key=None,
                 K = None,
-                ve_layer="6"):
+                ve_layer="6",
+                ve_hidden_nodes="12_july"):
     
     if preproc_adata:
         if (unspliced_key != "unspliced") and (spliced_key != "spliced"):
@@ -123,7 +124,7 @@ def setup_adata(dataset_name='pancreas',
         adata.var_names = [name.lower().capitalize() for name in list(adata.var_names)]
         print(f"adata shape preproc: {adata.shape}")
         adata.obsm["MuMs"] = np.concatenate([adata.layers["Mu"], adata.layers["Ms"]], axis=1)
-        distances, indices = manifold_and_neighbors(adata, n_components, n_knn_search, dataset_name, K, knn_rep, best_key, ve_layer)
+        distances, indices = manifold_and_neighbors(adata, n_components, n_knn_search, dataset_name, K, knn_rep, best_key, ve_layer, ve_hidden_nodes)
         adata.uns["distances"] = distances
         adata.uns["indices"] = indices
 

@@ -119,16 +119,14 @@ def plot_phase_plane(adata, gene_name, dataset, K, u_scale=.01, s_scale=0.01, al
 
     plt.show()
 
-def plot_losses(trainer, dataset, K,figsize=(20, 10)):
+import os
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+
+def plot_losses(trainer, dataset, K, figsize=(20, 10)):
     # Setup the figure and axes for 8 subplots
     loss_register = trainer.loss_register
-    with torch.no_grad():
-        for _, inner_dic in trainer.loss_register.items():
-            for key, value in inner_dic.items():
-                try:
-                    inner_dic[key] = value.cpu().numpy()
-                except:
-                    continue
 
     fig, axes = plt.subplots(nrows=2, ncols=6, figsize=figsize)
     fig.suptitle('Logarithmic Scale Training and Evaluation Losses per Epoch', fontsize=16)
@@ -136,20 +134,31 @@ def plot_losses(trainer, dataset, K,figsize=(20, 10)):
     # Names of the loss components
     loss_names = ['total_loss', 'recon_loss', 'kl_loss', 'heuristic_loss', "uniform_p_loss", "kl_weight"]
 
+    # Function to safely convert tensor to numpy
+    def safe_to_numpy(value):
+        if isinstance(value, torch.Tensor):
+            return value.cpu().numpy()  # Ensure tensor is moved to CPU and converted to numpy
+        return value
+
     # Plot training losses
     for i, loss_name in enumerate(loss_names):
-        modality="training"
-        axes[0, i].plot(np.log1p(loss_register[modality][f'{loss_name}']))
-        axes[0, i].set_title(f'Training {loss_name.replace("_", " ").title()}')
-        axes[0, i].set_xlabel('Epoch')
-        axes[0, i].set_ylabel('Log Loss')
-        axes[0, i].grid(True)
+        modality = "training"
+        if modality in loss_register and f'{loss_name}' in loss_register[modality]:
+            # Apply safe conversion for each value
+            loss_data = [safe_to_numpy(loss) for loss in loss_register[modality][f'{loss_name}']]
+            axes[0, i].plot(np.log1p(loss_data))
+            axes[0, i].set_title(f'Training {loss_name.replace("_", " ").title()}')
+            axes[0, i].set_xlabel('Epoch')
+            axes[0, i].set_ylabel('Log Loss')
+            axes[0, i].grid(True)
 
     # Plot evaluation losses
     for i, loss_name in enumerate(loss_names):
-        modality="evaluation"
-        if modality in loss_register:
-            axes[1, i].plot(np.log1p(loss_register[modality][f'{loss_name}']))
+        modality = "evaluation"
+        if modality in loss_register and f'{loss_name}' in loss_register[modality]:
+            # Apply safe conversion for each value
+            loss_data = [safe_to_numpy(loss) for loss in loss_register[modality][f'{loss_name}']]
+            axes[1, i].plot(np.log1p(loss_data))
             axes[1, i].set_title(f'Evaluation {loss_name.replace("_", " ").title()}')
             axes[1, i].set_xlabel('Epoch')
             axes[1, i].set_ylabel('Log Loss')
@@ -418,8 +427,10 @@ def compute_velocity_sign_uncertainty(adata, aggregate_method='mean'):
     else:
         raise ValueError("Invalid aggregate_method. Use 'mean' or 'sum'.")
     
-    adata.uns["p_gene_uncertainty"] = gene_uncertainty
-    adata.uns["p_cell_uncertainty"] = cell_uncertainty
+    adata.var["p_gene_uncertainty"] = gene_uncertainty
+    adata.obs["p_cell_uncertainty"] = cell_uncertainty
+
+
 
 def plot_embeddings(adata, dataset, K, cell_type_key="clusters"):
     sc.pp.neighbors(adata)
@@ -486,8 +497,12 @@ def plot_embeddings(adata, dataset, K, cell_type_key="clusters"):
 
     
     plt.savefig(f"outputs/{dataset}/K{K}/embeddings/z.png", bbox_inches='tight')  # Save using plt.savefig
-    
 
+    os.makedirs(f"outputs/{dataset}/K{K}/embeddings/",exist_ok=True)
+    sc.pl.umap(adata, color="p_cell_uncertainty")
+    plt.savefig(f"outputs/{dataset}/K{K}/embeddings/p_cell_uncertainty.png", bbox_inches='tight')
+    plt.close()
+    
 def plot_probabilities(adata, dataset, gene_name = "Rbfox3", x_label = "pp", y_label = "nn", cell_type_key="clusters"):
     # Assuming 'adata' is defined and properly structured
     # Extracting data for a specific gene across all cells

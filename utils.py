@@ -58,6 +58,7 @@ def return_gnames():
     ]
     return gnames
 
+
 def create_dir_tree(dataset, K):
     os.makedirs(f"inputs/annotations/", exist_ok=True)
     os.makedirs(f"outputs/adata_preproc/", exist_ok=True)
@@ -74,6 +75,7 @@ def create_dir_tree(dataset, K):
     os.makedirs(f"outputs/{dataset}/K{K}/stats/scvelo_metrics/expression/s_genes/", exist_ok=True)
     os.makedirs(f"outputs/{dataset}/K{K}/stats/scvelo_metrics/expression/g2m_genes/", exist_ok=True)
     os.makedirs(f"outputs/{dataset}/K{K}/phase_planes/deg_genes/", exist_ok=True)
+
 
 def save_adata(adata, dataset, K, knn_rep, save_first_regime=False):
     adata_path = f"outputs/{dataset}/K{K}/adata/"
@@ -96,6 +98,7 @@ def save_model(model, dataset, K, knn_rep, save_first_regime=False):
     else:
         path = f"outputs/{dataset}/K{K}/model/model_K{K}_dt_{knn_rep}_first_regime.pth"
         torch.save(model.state_dict(), path)
+
 
 def save_trainer(trainer, dataset, K, knn_rep, save_first_regime=False):
     trainer_path = f"outputs/{dataset}/K{K}/trainer/"
@@ -132,7 +135,6 @@ def get_velocity(adata, model, n_samples, full_data_loader, return_mean=True):
         velocities[-1] = velocities.mean(0)
 
     return -1 * velocities.cpu().numpy()
-
 
 def load_model(model, epoch, model_path):
     # Load the specific model checkpoint for the given epoch
@@ -244,7 +246,6 @@ def rename_duplicate_terms(adata):
 
     double_idx = np.where(np.array([list(terms).count(term) for term in terms])>1)[0]
     assert len(double_idx) == 0
-
 
 def latent_directions(adata, method="sum", get_confidence=False, key_added='directions'):
         """Get directions of upregulation for each latent dimension.
@@ -360,10 +361,9 @@ def fetch_relevant_terms(dataset):
             'TRIGEMINAL_NEURONS'
         ]
 
-
     return terms
 
-def manifold_and_neighbors(adata, n_components, n_knn_search, dataset_name, K, knn_rep, best_key, ve_layer):
+def manifold_and_neighbors(adata, n_components, n_knn_search, dataset_name, K, knn_rep, best_key, ve_layer, ve_hidden_nodes):
     from sklearn.manifold import Isomap
     from sklearn.decomposition import PCA
     import matplotlib.pyplot as plt
@@ -379,7 +379,7 @@ def manifold_and_neighbors(adata, n_components, n_knn_search, dataset_name, K, k
     pca = pca_runner.fit_transform(MuMs)
     pca_unique = PCA(n_components=1).fit_transform(MuMs)
     adata.uns["PCA_weights"] = pca_runner.components_
-    ve_path = f"/mnt/data2/home/leonardo/git/dim_reduction/256/embeddings/6layer_{dataset_name}_smooth_K_{ve_layer}.npy"
+    ve_path = f"/mnt/data2/home/leonardo/git/dim_reduction/{ve_hidden_nodes}/embeddings/6layer_{dataset_name}_smooth_K_{ve_layer}.npy"
     #ve = np.load(f"../dim_reduction/outputs/saved_z_matrices/{dataset_name}_z{ve_layer[0]}.npy")
     ve = np.load(ve_path)
     print(f"ve shape: {ve.shape}")
@@ -646,3 +646,21 @@ def add_cell_types_to_adata(adata):
     adata.obs['Clusters'] = adata.obs['Clusters'].map(cluster_to_cell_type)
 
     return adata
+
+def preprocess(
+    dataset_name
+    ):
+        if dataset_name == "forebrain":
+            adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/benchmark/imVelo/forebrain/forebrain/K11/adata/adata_K11_dt_ve.h5ad"
+        elif dataset_name == "pancreas":
+            adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/benchmark/imVelo/pancreas/pancreas/K11/adata/adata_K11_dt_ve.h5ad"
+        elif dataset_name == "gastrulation_erythroid":
+            adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/benchmark/imVelo/gastrulation_erythroid/gastrulation_erythroid/K11/adata/adata_K11_dt_ve.h5ad"
+        elif dataset_name == "dentategyrus_lamanno_P5":
+            adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/benchmark/imVelo/dentategyrus_lamanno_P5/dentategyrus_lamanno_P5/K31/adata/adata_K31_dt_pca.h5ad"
+
+        adata = sc.read_h5ad(adata_path)
+
+        print(f"number of gene programs: {len(adata.uns['terms'])}")
+
+        return adata

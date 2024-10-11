@@ -1,25 +1,16 @@
-import numpy as np
-import pandas as pd
 import scvelo as scv
 import scanpy as sc
-from scvelo_adapted_utils import load_files
-from scvelo_adapted_metrics import compute_scvelo_metrics, deg_genes
-from scvelo_adapted_plots import plot_important_genes
-from benchmark_preprocessing import preprocess
-import os 
+from scvelo_adapted_metrics import compute_scvelo_metrics
 
-
-n_highly_var_genes = 2000
-smooth_k = 30
 datasets = ["forebrain", "pancreas", "gastrulation_erythroid", "dentategyrus_lamanno_P5"]
 cell_type_keys = ["Clusters", "clusters","celltype", "clusters"]
 
-
-datasets = ["forebrain"]
-cell_type_keys = ["Clusters"]
+datasets=["dentategyrus_lamanno_P5"]
+cell_type_keys = ["clusters"]
 
 for dataset, cell_type_key in zip(datasets, cell_type_keys):
-    adata = preprocess(dataset, cell_type_key, n_highly_var_genes, smooth_k)
+    adata_path = f"../imVelo/{dataset}/imVelo_{dataset}.h5ad"
+    adata = sc.read_h5ad(adata_path)
     scv.tl.velocity(adata, mode="stochastic")
     scv.tl.velocity_graph(adata)
     scv.pl.velocity_embedding_stream(adata, color=cell_type_key)

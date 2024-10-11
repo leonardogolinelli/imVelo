@@ -25,7 +25,6 @@ def preprocess(dataset_name):
         sc.pp.highly_variable_genes(adata, n_top_genes=1720, flavor="seurat_v3")
         adata = adata[:, adata.var['highly_variable']]
 
-
         # Calculate the first and second moments (needed for velocity estimation)
         scv.pp.moments(adata, n_neighbors=200)
 

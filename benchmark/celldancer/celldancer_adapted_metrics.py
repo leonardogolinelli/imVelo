@@ -72,14 +72,18 @@ def compute_scvelo_metrics(adata, dataset, show=False, cell_type_key="clusters")
     for path in [confidence_path, s_genes_path, g2m_genes_path]:
         os.makedirs(path, exist_ok = True)
 
-    final_idx = -1 if not dataset == "dentategyrus_lamanno" else -2
-    keys = [cell_type_key, 'velocity_length', 'velocity_confidence', 'velocity_pseudotime']
-    cmaps = [None, 'coolwarm', 'coolwarm', 'gnuplot']
-    for i, key in enumerate(keys[:final_idx]):
+    if not dataset == "dentategyrus_lamanno_P5":
+        keys = cell_type_key, 'velocity_length', 'velocity_confidence', 'velocity_pseudotime'
+        cmaps = [None, 'coolwarm', 'coolwarm', 'gnuplot', 'gnuplot']
+    else:
+        keys = cell_type_key, 'velocity_length', 'velocity_confidence'
+        cmaps = [None, 'coolwarm', 'coolwarm', 'gnuplot']
+
+    for i, key in enumerate(keys):
         sc.pl.umap(adata, color=key, color_map=cmaps[i], show=show)
         plt.savefig(f"{confidence_path}{key}.png", bbox_inches='tight')
 
-    for i, key in enumerate(keys[:final_idx]):
+    for i, key in enumerate(keys):
         scv.pl.velocity_embedding_stream(adata, color=key, color_map=cmaps[i], show=show)
         
         plt.savefig(f"{confidence_path}{key}_stream.png", bbox_inches='tight')

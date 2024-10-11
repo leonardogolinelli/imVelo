@@ -148,11 +148,11 @@ class Trainer:
             self.optimizer.step()
 
             total_loss += losses["total_loss"].item() 
-            recon_loss += losses["recon_loss"].item() if not learn_kinetics else 0
-            kl_loss += losses["kl_loss"].item() if not learn_kinetics else 0
-            heuristic_loss += losses["heuristic_loss"].item() if learn_kinetics else 0
-            uniform_p_loss += losses["uniform_p_loss"].item() if learn_kinetics else 0
-            kl_weight = losses["kl_weight"] if not learn_kinetics else 0
+            recon_loss += losses["recon_loss"].item() #if not learn_kinetics else 0
+            kl_loss += losses["kl_loss"].item() #if not learn_kinetics else 0
+            heuristic_loss += losses["heuristic_loss"].item() if isinstance(losses["heuristic_loss"], torch.Tensor) and learn_kinetics else losses["heuristic_loss"]
+            uniform_p_loss += losses["uniform_p_loss"].item() if isinstance(losses["uniform_p_loss"], torch.Tensor) and learn_kinetics else losses["uniform_p_loss"]
+            kl_weight = losses["kl_weight"] #if not learn_kinetics else 0
         
         self.loss_register["training"]["total_loss"].append(total_loss / len(self.train_dl))
         self.loss_register["training"]["recon_loss"].append(recon_loss / len(self.train_dl))
@@ -174,14 +174,14 @@ class Trainer:
         with torch.no_grad():
             for x_batch, idx_batch in self.test_dl:
                 x_batch = x_batch.to(self.device)
-                model_out = self.model(x_batch, learn_kinetics=learn_kinetics)
+                model_out = self.model(x_batch, idx_batch, learn_kinetics=learn_kinetics)
                 losses = self.loss_calculator(self.device, self.adata, learn_kinetics, self.K, x_batch, idx_batch, model_out, current_epoch)
                 total_loss += losses["total_loss"].item() 
-                recon_loss += losses["recon_loss"].item() if not learn_kinetics else 0
-                kl_loss += losses["kl_loss"].item() if not learn_kinetics else 0
-                heuristic_loss += losses["heuristic_loss"].item() if learn_kinetics else 0
-                uniform_p_loss += losses["uniform_p_loss"].item() if learn_kinetics else 0
-                kl_weight = losses["kl_weight"].item() if not learn_kinetics else 0
+                recon_loss += losses["recon_loss"].item() #if not learn_kinetics else 0
+                kl_loss += losses["kl_loss"].item() #if not learn_kinetics else 0
+                heuristic_loss += losses["heuristic_loss"].item() if isinstance(losses["heuristic_loss"], torch.Tensor) and learn_kinetics else losses["heuristic_loss"]
+                uniform_p_loss += losses["uniform_p_loss"].item() if isinstance(losses["uniform_p_loss"], torch.Tensor) and learn_kinetics else losses["uniform_p_loss"]
+                kl_weight = losses["kl_weight"]#if not learn_kinetics else 0
 
             self.loss_register["evaluation"]["total_loss"].append(total_loss / len(self.train_dl))
             self.loss_register["evaluation"]["recon_loss"].append(recon_loss / len(self.train_dl))
@@ -247,7 +247,8 @@ class Trainer:
             loss_eval = self.eval_epoch(learn_kinetics, epoch) if self.split_data else None
 
             if learn_kinetics or epoch == self.first_regime_end-1:
-                if epoch % 50 == 0 or epoch == self.n_epochs - 1 or epoch == self.first_regime_end-1:
+                percent_val = 50 if self.dataset_name == "forebrain" else 25
+                if epoch % percent_val == 0 or epoch == self.n_epochs - 1 or epoch == self.first_regime_end-1:
                     # Save the model
                     model_path = os.path.join(model_save_dir, f"model_epoch_{epoch}.pt")
                     retry = 3

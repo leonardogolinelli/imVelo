@@ -12,6 +12,9 @@ from dataloaders import setup_dataloaders
 from plotting import plot_phase_plane
 from plotting import compute_celldeviation_maxstatevelo
 import os
+import seaborn as sns
+import mplscience
+
 
 #!/usr/bin/env python3
 def compute_bayes_factors(adata, cell_type_key):
@@ -289,6 +292,129 @@ def estimate_uncertainty(
                                                     dataset=dataset, K=K)
     
 
+def compute_sign_variance(adata, model, n_samples=50, dataloader=None):
+    # Use your method to get velocities with multiple samples
+    v_stack = get_velocity(
+        adata=adata, 
+        model=model, 
+        n_samples=n_samples, 
+        full_data_loader=dataloader, 
+        return_mean=False
+    )
+
+    pos_freq = (v_stack >= 0).mean(0)
+    adata.layers["velocity"] = v_stack.mean(0)
+
+    var_freq = pos_freq * (1 - pos_freq)
+    adata.obs["sign_var"] = var_freq.mean(1)
+
+    adata.layers["sign_var"] = var_freq
+    adata.layers["variance"] = v_stack.var(0)
+
+
+def compute_sign_var_score(adata, labels_key, model, n_samples=50, dataloader=None):
+    # Reuse the modified compute_sign_variance
+    compute_sign_variance(adata, model, n_samples=n_samples, dataloader=dataloader)
+
+    sign_var_df = pd.DataFrame(adata.layers["sign_var"], index=adata.obs_names)
+    expr_df = pd.DataFrame(adata.layers["Ms"], index=adata.obs_names)
+
+    # Calculate the product of sign variance and absolute expression
+    prod_df = sign_var_df * np.abs(expr_df)
+    prod_df[labels_key] = adata.obs[labels_key]
+    prod_df = prod_df.groupby(labels_key).mean()
+
+    sign_var_df[labels_key] = adata.obs[labels_key]
+    sign_var_df = sign_var_df.groupby(labels_key).mean()
+
+    return sign_var_df.mean(0)
+
+
+def gene_rank(adata, vkey="velocity"):
+    from scipy.stats import rankdata
+
+    # Calculate velocity graph
+    scv.tl.velocity_graph(adata, vkey=vkey)
+
+    # Generate the transition matrix
+    tm = scv.utils.get_transition_matrix(
+        adata, vkey=vkey, use_negative_cosines=True, self_transitions=True
+    )
+    tm.setdiag(0)
+
+    # Extrapolate RNA counts
+    adata.layers["Ms_extrap"] = tm @ adata.layers["Ms"]
+    adata.layers["Ms_delta"] = adata.layers["Ms_extrap"] - adata.layers["Ms"]
+
+    # Product score: delta RNA counts multiplied by velocities
+    prod = adata.layers["Ms_delta"] * adata.layers[vkey]
+    ranked = rankdata(prod, axis=1)
+
+    adata.layers["product_score"] = prod
+    adata.layers["ranked_score"] = ranked
+
+
+
+import scanpy as sc
+import pandas as pd
+
+def compute_and_plot_velocity_coherence(
+    adata, 
+    model, 
+    dataloader,
+    dataset_name: str, 
+    cell_type_key: str, 
+    save_figures: bool = False, 
+    fig_dir: str = "."
+):
+    # Compute sign variance score
+    compute_sign_var_score(adata, cell_type_key, model, n_samples=50, dataloader=dataloader)
+    
+    # Rank genes based on velocity coherence
+    gene_rank(adata)
+    
+    # Initialize list for coherence data
+    coherence_data = []
+
+    # Get unique cell types from the given key in adata.obs
+    clusters = adata.obs[cell_type_key].unique()
+
+    for cluster in clusters:
+        cluster_cells = adata.obs.query(f"{cell_type_key} == '{cluster}'").index
+        cluster_data = adata[cluster_cells]
+        
+        # Per cell and per gene velocity coherence
+        cluster_data.obs[f'mean_product_score_per_cell_{cluster.lower()}'] = cluster_data.layers['product_score'].mean(axis=1)
+        cluster_data.var[f'mean_product_score_per_gene_{cluster.lower()}'] = cluster_data.layers['product_score'].mean(axis=0)
+
+        # Store the coherence values in adata.obs for the whole dataset
+        adata.obs.loc[cluster_cells, 'velocity_coherence'] = cluster_data.var[f'mean_product_score_per_gene_{cluster.lower()}'].mean()
+
+    # Now plot using Scanpy's violin function
+    sc.pl.violin(
+        adata, 
+        keys="velocity_coherence", 
+        groupby=cell_type_key, 
+        jitter=True, 
+        rotation=90, 
+        save=f"_{dataset_name}_velocity_coherence.png" if save_figures else None
+    )
+
+    # Optionally save the figures if required
+    if save_figures:
+        save_path = os.path.join(fig_dir, dataset_name)
+        os.makedirs(save_path, exist_ok=True)
+        sc.pl.violin(
+            adata, 
+            keys="velocity_coherence", 
+            groupby=cell_type_key, 
+            jitter=True, 
+            rotation=90, 
+            save=os.path.join(save_path, f"velocity_coherence_{dataset_name}.svg")
+        )
+
+
+
 def deg_genes(adata, dataset, K, cell_type_key="clusters", n_deg_rows=5):
     print(f"Computing DEG genes..")
     import os
@@ -392,6 +518,13 @@ def compute_scvelo_metrics(adata, dataset, K, show=False, cell_type_key="cluster
                             add_outline=True, show=False)
             plt.tight_layout()
             plt.savefig(save_path, bbox_inches='tight')
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     adata, model = load_files(dataset="pancreas", K=11)

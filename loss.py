@@ -15,6 +15,7 @@ class CustomLoss:
         annealing_epochs,
         write_losses = False,
     ):
+        
         self.device = device
         self.recon_loss_weight = recon_loss_weight
         self.kl_weight_upper = kl_weight_upper
@@ -88,14 +89,18 @@ class CustomLoss:
         
         if learn_kinetics:
             # Regime 2: No KL annealing, use heuristic loss
-            kl_weight = 0
-            self.recon_loss_weight = 0
+            kl_weight = self.kl_weight_upper
+            recon_loss_weight = 1e-1
+            p_loss_weight = self.p_loss_weight
+            heuristic_loss_weight = 1
             heuristic_loss_value = self.heuristic_loss(adata, x, batch_indices, model_out["prediction"], device, K)
         else:
             # Regime 1: Linear KL annealing, no heuristic loss
             kl_weight = self.compute_kl_weight(current_epoch)
+            heuristic_loss_weight = 0
             heuristic_loss_value = 0
-            self.uniform_p_loss = 0
+            p_loss_weight = 0
+            recon_loss_weight = 1
 
         if self.write_losses:
             return {
@@ -109,18 +114,18 @@ class CustomLoss:
             assert tensor.requires_grad, f"{name} does not require gradients"
     
         # Apply weights to losses
-        recon_loss = self.recon_loss_weight * recon_loss if not learn_kinetics else 0
-        kl_loss = kl_weight * kl_loss if not learn_kinetics else 0
-        heuristic_loss = self.empirical_loss_weight * heuristic_loss_value if learn_kinetics else 0
-        uniform_p_loss = self.p_loss_weight * uniform_p_loss_value if learn_kinetics else 0 
+        recon_loss = recon_loss_weight * recon_loss 
+        kl_loss = kl_weight * kl_loss 
+        heuristic_loss = heuristic_loss_weight * heuristic_loss_value
+        uniform_p_loss = p_loss_weight * uniform_p_loss_value 
 
-        # Perform assertions
+        """# Perform assertions
         if not learn_kinetics:
             assert_requires_grad(recon_loss, "recon_loss_value")
             assert_requires_grad(kl_loss, "kl_loss_value")
         else:
             assert_requires_grad(heuristic_loss, "heuristic_loss_value")
-            assert_requires_grad(uniform_p_loss, "uniform_p_loss_value")
+            assert_requires_grad(uniform_p_loss, "uniform_p_loss_value")"""
 
         # Compute total loss
         total_loss = recon_loss + kl_loss + heuristic_loss + uniform_p_loss

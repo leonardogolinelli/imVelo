@@ -6,6 +6,7 @@ import os
 import scarches as sca
 import matplotlib.pyplot as plt
 import torch
+from benchmark_preprocessing import preprocess
 
 
 sc.set_figure_params(frameon=False)
@@ -14,24 +15,16 @@ sc.set_figure_params(figsize=(4, 4))
 torch.set_printoptions(precision=3, sci_mode=False, edgeitems=7)
 
 
-
-model = "expimap"
-datasets = ["forebrain", "dentategyrus_lamanno"]
-cell_type_keys = ["Clusters", "clusters"]
-
+datasets = ["forebrain", "pancreas", "gastrulation_erythroid", "dentategyrus_lamanno_P5"]
+cell_type_keys = ["Clusters", "clusters", "celltype", "clusters"]
 
 for dataset, cell_type_key in zip(datasets, cell_type_keys):
     print(f"running expimap on dataset: {dataset}")
     os.makedirs(dataset, exist_ok=True)
-    adata_path = os.path.expanduser(f"~/top_adatas/mivelo_{dataset}.h5ad")
-    adata = sc.read_h5ad(adata_path)
-    if dataset == "forebrain":
-        adata.obs[cell_type_key] = [str(name) for name in adata.obs[cell_type_key]]
-        adata.obs[cell_type_key] = pd.Series(adata.obs[cell_type_key], dtype="category")
-    del adata.layers["velocity"]
-    del adata.layers["velocity_u"]
 
-    data = np.concatenate([adata.layers["Mu"], adata.layers["Ms"]], axis=1)
+    adata = preprocess(dataset)
+
+    data = adata.obsm["MuMs"]
     adata_expimap = sc.AnnData(X=data)
     adata_expimap.uns["terms"] = adata.uns["terms"].copy()
     adata_expimap.obs = adata.obs.copy()
@@ -86,6 +79,5 @@ for dataset, cell_type_key in zip(datasets, cell_type_keys):
     intr_cvae.latent_directions(adata=adata_expimap)
     intr_cvae.latent_enrich(groups=cell_type_key, use_directions=False, adata=adata_expimap)
 
-    adata.write_h5ad(os.path.expanduser(f"~/top_adatas/{model}_{dataset}.h5ad"))
-    adata.write_h5ad(os.path.expanduser(f"{dataset}/{model}_{dataset}.h5ad"))
+    adata.write_h5ad(f"{dataset}/expimap_{dataset}.h5ad")
     intr_cvae.save(f"{dataset}/model")

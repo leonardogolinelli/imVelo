@@ -2,6 +2,7 @@ import scanpy as sc
 import scvelo as scv
 import pandas as pd
 import seaborn as sns
+from utils import add_cell_types_to_adata
 
 def preprocess(
     dataset_name,
@@ -24,6 +25,5 @@ def preprocess(
         adata.X = adata.layers["counts_spliced"].copy()
         scv.pp.filter_and_normalize(adata, min_shared_counts=20, n_top_genes=n_highly_var_genes) #filter and normalize
         scv.pp.moments(adata, n_neighbors=smooth_k)
-
 
         return adata
