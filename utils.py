@@ -580,9 +580,9 @@ def get_parameters(dataset_name, learn_kinetics):
 
         # Learning rate adjustments for optimizer param groups
         optimizer_lr_factors = {
-            'encoder': 1 if learn_kinetics else 1,
-            'linear_decoder': 1 if learn_kinetics else 1,
-            'kinetics_decoder': 1 if learn_kinetics else 0
+            'encoder': 1e-3 if learn_kinetics else 1,
+            'linear_decoder': 1-3 if learn_kinetics else 1,
+            'kinetics_decoder': 1-3 if learn_kinetics else 0
         }
 
     else:
@@ -657,7 +657,7 @@ def preprocess(
         elif dataset_name == "gastrulation_erythroid":
             adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/benchmark/imVelo/gastrulation_erythroid/gastrulation_erythroid/K11/adata/adata_K11_dt_ve.h5ad"
         elif dataset_name == "dentategyrus_lamanno_P5":
-            adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/benchmark/imVelo/dentategyrus_lamanno_P5/dentategyrus_lamanno_P5/K31/adata/adata_K31_dt_pca.h5ad"
+            adata_path = "/mnt/data2/home/leonardo/git/multilineage_velocity/benchmark/imVelo/dentategyrus_lamanno_P5/imVelo_dentategyrus_lamanno_P5.h5ad"
 
         adata = sc.read_h5ad(adata_path)
 

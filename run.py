@@ -5,7 +5,7 @@ from plotting import *
 from metrics import * 
 
 # Preprocessing parameters
-dataset_name = "pancreas"
+dataset_name = "forebrain"
 preproc_adata = True
 smooth_k = 200
 n_highly_var_genes = 4000
@@ -26,17 +26,17 @@ ve_hidden_nodes = "12_july"
 # Training parameters
 model_hidden_dim = 512
 K= K
-train_size = 1
+train_size = .9
 batch_size = 256
-n_epochs = 2500
-first_regime_end = 2000
+n_epochs = 20500
+first_regime_end = 20000
 kl_start = 1e-9
 kl_weight_upper = 1e-8
 base_lr = 1e-4
 recon_loss_weight = 1
 empirical_loss_weight = 1
 p_loss_weight = 1e-1 ########################### TESTING 0 instead of 1e-1
-split_data = False
+split_data = True
 weight_decay = 1e-4
 load_last = True
 
@@ -47,12 +47,12 @@ K_vals = [11,11,11,31]
 datasets = ["forebrain"]
 cell_type_keys = ["Clusters"]
 K_vals = [11]
-batch_size = 1720
+batch_size = 1548 
 n_highly_var_genes = 6000
 
 for dataset_name, cell_type_key, K in zip(datasets, cell_type_keys, K_vals):
     #new_folder_name = f"forebrain_kl_upper_{kl_weight_upper}_epoch_20000"
-    new_folder_name = f"{dataset_name}_test_1"
+    new_folder_name = f"{dataset_name}"
     #new_folder_name = f"outputs_{dataset_name}_K{K}_knn_rep_{knn_rep}_best_key_{best_key}_{i}_kl_weight_1e-9_{kl_weight_upper}_20k_6000genes"
     if not os.path.isdir(new_folder_name):
         # Run preprocessing
@@ -123,4 +123,5 @@ for dataset_name, cell_type_key, K in zip(datasets, cell_type_keys, K_vals):
         bayes_factors(adata, cell_type_key, top_N, dataset_name, K, show_plot=False, save_plot=True)
         #estimate_uncertainty(adata, model, batch_size=256, n_jobs=1, show=show, dataset=dataset_name, K=K)
         save_adata(adata, dataset_name, K, knn_rep, save_first_regime=False)
-        os.rename("outputs", new_folder_name)
+        os.rename("outputs", "imVelo_evaluation/"+new_folder_name)
+

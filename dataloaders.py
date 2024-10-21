@@ -24,7 +24,12 @@ def setup_dataloaders(adata, batch_size, train_size=0.8, split_data=True):
         indices = np.random.permutation(num_samples)
         split = int(train_size * num_samples)
         train_indices, test_indices = indices[:split], indices[split:]
+        adata.uns["train_indices"] = train_indices
+        adata.uns["test_indices"] = test_indices
 
+        print(f"number of training observations: {len(train_indices)}")
+        print(f"number of test observations: {len(test_indices)}")
+        
         train_subset = Subset(custom_dataset, train_indices)
         test_subset = Subset(custom_dataset, test_indices)
         test_loader = DataLoader(test_subset, batch_size=batch_size, shuffle=False)

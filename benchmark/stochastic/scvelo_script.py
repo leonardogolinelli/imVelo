@@ -5,9 +5,6 @@ from scvelo_adapted_metrics import compute_scvelo_metrics
 datasets = ["forebrain", "pancreas", "gastrulation_erythroid", "dentategyrus_lamanno_P5"]
 cell_type_keys = ["Clusters", "clusters","celltype", "clusters"]
 
-datasets=["dentategyrus_lamanno_P5"]
-cell_type_keys = ["clusters"]
-
 for dataset, cell_type_key in zip(datasets, cell_type_keys):
     adata_path = f"../imVelo/{dataset}/imVelo_{dataset}.h5ad"
     adata = sc.read_h5ad(adata_path)

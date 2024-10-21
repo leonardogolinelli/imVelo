@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import scanpy as sc
 import pandas as pd
 import scvelo as scv
-from celldancer_adapted_plots import plot_phase_plane
+from scvelo_adapted_plots import plot_phase_plane
 
 def deg_genes(adata, dataset, cell_type_key="clusters", n_deg_rows=5):
     import os

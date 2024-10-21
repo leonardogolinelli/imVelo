@@ -62,8 +62,10 @@ def deg_genes(adata, dataset, cell_type_key="clusters", n_deg_rows=5):
     return adata
 
 def compute_scvelo_metrics(adata, dataset, show=False, cell_type_key="clusters"):
+    sc.pp.neighbors(adata)
+    scv.tl.velocity_graph(adata)
     scv.tl.velocity_confidence(adata)
-    if not dataset == "dentategyrus_lamanno":
+    if not dataset == "dentategyrus_lamanno_P5":
         scv.tl.velocity_pseudotime(adata)
 
     confidence_path = f"{dataset}/scvelo_metrics/confidence/"

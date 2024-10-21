@@ -1,0 +1,8 @@
+forebrain, velocity_pseudotime, ivelo
+pancreas, isomap_1, imVelo preprocessing
+gastrulation_erythroid, isomap_1, imVelo preprocessing
+dentategyrus_lamanno_P5, isomap_1_velocity, imVelo
+
+
+dentategyrus_lamanno_P5: reversed velocity of ImmAstro and OPC
+pancreas: reversed velocity of Ductal and Ngn3 low EP

@@ -499,6 +499,7 @@ def plot_embeddings(adata, dataset, K, cell_type_key="clusters"):
     plt.savefig(f"outputs/{dataset}/K{K}/embeddings/z.png", bbox_inches='tight')  # Save using plt.savefig
 
     os.makedirs(f"outputs/{dataset}/K{K}/embeddings/",exist_ok=True)
+    compute_velocity_sign_uncertainty(adata)
     sc.pl.umap(adata, color="p_cell_uncertainty")
     plt.savefig(f"outputs/{dataset}/K{K}/embeddings/p_cell_uncertainty.png", bbox_inches='tight')
     plt.close()

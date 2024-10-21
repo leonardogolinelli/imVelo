@@ -104,3 +104,16 @@ benchmark_old/velocity_confidence/confidences.png
 benchmark_old/velocity_confidence/dentategyrus_lamanno_P5_confidences.png
 benchmark_old/velocity_confidence/gastrulation_erythroid_confidences.png
 benchmark_old/velocity_confidence/pancreas_confidences.png
+.vscode
+benchmark/deepvelo/__pycache__
+benchmark/matrices/matrix_folder
+benchmark/mse/plots
+benchmark/scib_metrics/__pycache__
+benchmark/scib_metrics/bio_conservation_plots*
+benchmark/velocity_coherence/__pycache__
+benchmark/velocity_confidence_uncertainty/plots/
+benchmark/velocity_correlation/plots/
+benchmark/velocity_correlation/gene_wise_correlations.pkl
+benchmark/velocity_correlation/cell_wise_correlations.pkl
+
+downstream/phase_plane_plots

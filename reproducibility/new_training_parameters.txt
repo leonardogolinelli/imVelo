@@ -1,0 +1,195 @@
+PANCREAS
+
+12 july variance encoder neighbors
+
+# Preprocessing parameters
+dataset_name = "pancreas"
+preproc_adata = True
+smooth_k = 200
+n_highly_var_genes = 4000
+cell_type_key = "clusters"
+save_umap = False
+show_umap = False
+unspliced_key = "unspliced"
+spliced_key = "spliced"
+filter_on_r2 = False
+knn_rep = "ve"
+n_components = 10
+n_knn_search = 10
+best_key = None
+K = 11
+ve_layer = "None"
+
+# Training parameters
+model_hidden_dim = 512
+K= K
+train_size = 1
+batch_size = 256
+n_epochs = 10400
+first_regime_end = 10000
+kl_start = 1e-9
+kl_weight_upper = 1e-8
+base_lr = 1e-4
+recon_loss_weight = 1
+empirical_loss_weight = 1
+p_loss_weight = 1e-1
+split_data = False
+weight_decay = 1e-4
+load_last = True
+
+if param_group['tag'] == 'encoder':
+    param_group['lr'] = self.base_lr  * (1e-1 if learn_kinetics else 1)
+elif param_group['tag'] == 'linear_decoder':
+    param_group['lr'] = self.base_lr  (1e-1 if learn_kinetics else 1)
+elif param_group['tag'] == 'kinetics_decoder':
+    param_group['lr'] = self.base_lr * (1e-1 if learn_kinetics else 0)
+
+
+FOREBRAIN
+
+12 july variance encoder neighbors
+
+# Preprocessing parameters
+dataset_name = "forebrain"
+preproc_adata = True
+smooth_k = 200
+n_highly_var_genes = 6000
+cell_type_key = "Clusters"
+save_umap = False
+show_umap = False
+unspliced_key = "unspliced"
+spliced_key = "spliced"
+filter_on_r2 = False
+knn_rep = "ve"
+n_components = 10
+n_knn_search = 10
+best_key = None
+K = 11
+ve_layer = "None"
+
+
+# Training parameters
+model_hidden_dim = 512
+K= K
+train_size = 1
+batch_size = 1720
+n_epochs = 20100
+first_regime_end = 20000
+kl_start = 1e-9
+kl_weight_upper = 1e-8
+base_lr = 1e-4
+recon_loss_weight = 1
+empirical_loss_weight = 1
+p_loss_weight = 1e-1
+split_data = False
+weight_decay = 1e-4
+load_last = True
+
+
+for param_group in self.optimizer.param_groups:
+    if 'tag' in param_group:
+        if param_group['tag'] == 'encoder':
+            param_group['lr'] = self.base_lr  * (1e-3 if learn_kinetics else 1)
+        elif param_group['tag'] == 'linear_decoder':
+            param_group['lr'] = self.base_lr  (1e-3 if learn_kinetics else 1)
+        elif param_group['tag'] == 'kinetics_decoder':
+            param_group['lr'] = self.base_lr * (1e-3 if learn_kinetics else 0)
+        else:
+            param_group['lr'] = self.base_lr  # Default scaling for other parts
+
+
+
+GASTRULATION ERYTHROID
+ 
+
+256 VARIANCE ENCODER
+
+# Preprocessing parameters
+dataset_name = "gastrulation_erythroid"
+preproc_adata = True
+smooth_k = 200
+n_highly_var_genes = 4000
+cell_type_key = "celltype"
+save_umap = False
+show_umap = False
+unspliced_key = "unspliced"
+spliced_key = "spliced"
+filter_on_r2 = False
+knn_rep = "ve"
+n_components = 10
+n_knn_search = 10
+best_key = None
+K = 11
+ve_layer = "None"
+
+
+# Training parameters
+model_hidden_dim = 512
+K= K
+train_size = 1
+batch_size = 1024
+n_epochs = 20500
+first_regime_end = 20000
+kl_start = 1e-9
+kl_weight_upper = 1e-8
+base_lr = 1e-4
+recon_loss_weight = 1
+empirical_loss_weight = 1
+p_loss_weight = 1e-1
+split_data = False
+weight_decay = 1e-4
+load_last = True
+
+
+for param_group in self.optimizer.param_groups:
+    if 'tag' in param_group:
+        if param_group['tag'] == 'encoder':
+            param_group['lr'] = self.base_lr  * (1e-3 if learn_kinetics else 1)
+        elif param_group['tag'] == 'linear_decoder':
+            param_group['lr'] = self.base_lr  (1e-3 if learn_kinetics else 1)
+        elif param_group['tag'] == 'kinetics_decoder':
+            param_group['lr'] = self.base_lr * (1e-3 if learn_kinetics else 0)
+        else:
+            param_group['lr'] = self.base_lr  # Default scaling for other parts
+
+
+DENTATEGYRUS LAMANNO
+
+DENTATEGYRUS LAMANNO P5
+
+VE 12_july
+
+# Preprocessing parameters
+dataset_name = "dentategyrus_lamanno_P5"
+preproc_adata = True
+smooth_k = 200
+n_highly_var_genes = 4000
+cell_type_key = "clusters"
+save_umap = False
+show_umap = False
+unspliced_key = "unspliced"
+spliced_key = "spliced"
+filter_on_r2 = False
+knn_rep = "pca"
+n_components = 100
+n_knn_search = 10
+best_key = "pca_unique"
+K = 31 
+ve_layer = "None"
+
+# Training parameters
+model_hidden_dim = 512
+K= K
+train_size = 1
+batch_size = 256
+n_epochs = 20500
+first_regime_end = 20000
+kl_start = 1e-9
+kl_weight_upper = 1e-8
+base_lr = 1e-4
+recon_loss_weight = 1
+empirical_loss_weight = 1
+p_loss_weight = 1e-1
+split_data = False
+weight_decay = 1e-4
+load_last = True

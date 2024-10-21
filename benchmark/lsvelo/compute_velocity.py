@@ -29,7 +29,7 @@ def least_squares_slope(time_vector, quantity_vector):
     slope = numerator / denominator
     return slope
 
-def learn_and_store_velocity(adata, time_key, cell_type_key):
+def learn_and_store_velocity(adata, cell_type_key):
     adata.layers["velocity_u"] = np.zeros(adata.shape)
     adata.layers["velocity"] = np.zeros(adata.shape)
     for ctype in pd.unique(adata.obs[cell_type_key]):
@@ -40,7 +40,7 @@ def learn_and_store_velocity(adata, time_key, cell_type_key):
             Ms = adata.layers["Ms"]
             quantity_vector_u = Mu[ctype_obs,i]
             quantity_vector_s = Ms[ctype_obs,i]
-            time_vector = adata.obs[time_key][ctype_obs]
+            time_vector = adata.obs["pseudotime"][ctype_obs]
             velocity_u = least_squares_slope(time_vector, quantity_vector_u)
             velocity = least_squares_slope(time_vector, quantity_vector_s)
             adata.layers["velocity_u"][ctype_obs, i] = velocity_u
