@@ -20,7 +20,7 @@ trainer_path = f"{base_path}/{dataset_name}/K{K}/trainer/trainer_K{K}_dt_{knn_re
 
 if not os.path.isdir(new_folder_name):
     adata = sc.read_h5ad(adata_path)
-    #adata = sc.read_h5ad("/mnt/data2/home/leonardo/git/multilineage_velocity/checkpoints/pancreas/pancreas/K11/adata/adata_K11_dt_ve.h5ad")
+    #adata = sc.read_h5ad("/mnt/data2/home/leonardo/git/imVelo/checkpoints/pancreas/pancreas/K11/adata/adata_K11_dt_ve.h5ad")
 
     model = VAE(adata, 512, "cpu")
     model = load_model_checkpoint(adata, model, model_path)

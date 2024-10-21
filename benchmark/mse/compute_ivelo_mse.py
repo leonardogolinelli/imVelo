@@ -12,14 +12,14 @@ model_names = ["ivelo", "ivelo_filtered"]
 for model_name in model_names:
     for dataset in datasets:
         print(f"Processing dataset: {dataset}")
-        adata = sc.read_h5ad(f"../../multilineage_velocity/benchmark/{model_name}/{dataset}/{model_name}_{dataset}.h5ad")
+        adata = sc.read_h5ad(f"../../imVelo/benchmark/{model_name}/{dataset}/{model_name}_{dataset}.h5ad")
 
         # Initialize the VELOVI model with the AnnData object
         IVELO.setup_anndata(adata, spliced_layer="Ms", unspliced_layer="Mu")
         model = IVELO(adata)
 
         # Load the pretrained model
-        model_path = f"../../multilineage_velocity/benchmark/{model_name}/{dataset}/{model_name}_{dataset}"
+        model_path = f"../../imVelo/benchmark/{model_name}/{dataset}/{model_name}_{dataset}"
         model = IVELO.load(model_path, adata=adata)
 
         # Get the training indices
@@ -50,7 +50,7 @@ for model_name in model_names:
 
         mse_per_cell_test = np.mean((original_test - reconstructed_test) ** 2, axis=1)
         
-        np.save(f"../../multilineage_velocity/benchmark/matrices/matrix_folder/test_mse_{model_name}_{dataset}", mse_per_cell_test)
+        np.save(f"../../imVelo/benchmark/matrices/matrix_folder/test_mse_{model_name}_{dataset}", mse_per_cell_test)
         
         print(f"Mean squared error for dataset {dataset} has been stored in adata.obs['mse_reconstruction'].")
 
