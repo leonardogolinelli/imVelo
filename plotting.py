@@ -10,10 +10,172 @@ import matplotlib.patches as mpatches
 import seaborn as sns
 from utils import fetch_relevant_terms
 from sklearn.manifold import Isomap
+def plot_velocity_expression(adata, gene_name, plot_type="spliced",
+                             title_fontsize=16, axis_fontsize=14, legend_fontsize=12, tick_fontsize=12,
+                             legend_title_fontsize=14, cell_type_key="clusters", save_path=".", save_plot=False,
+                             scale_velocity=1, shift_expression=0, plot_shift=True, reverse_pseudotime=False):
+    """
+    Function to plot the unnormalized spliced or unspliced velocity and expression data,
+    with options for scaling and shifting.
+
+    Parameters:
+        adata: AnnData object containing the data.
+        gene_name: Name of the gene to plot.
+        plot_type: "unspliced" or "spliced" to choose which data to plot.
+        title_fontsize: Font size for the title.
+        axis_fontsize: Font size for the axes labels.
+        legend_fontsize: Font size for the legend.
+        tick_fontsize: Font size for the tick labels.
+        legend_title_fontsize: Font size for the legend title.
+        cell_type_key: Key in adata.obs for cell type annotations.
+        save_path: Path to save the plot if save_plot is True.
+        save_plot: Whether to save the plot.
+        scale_velocity: Factor to scale the velocity data.
+        shift_expression: Value to shift the expression data.
+        plot_shift: Whether to plot the shift arrow.
+        reverse_pseudotime: Whether to reverse the pseudotime axis.
+    """
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+
+    # Retrieve the pseudotime data
+    if reverse_pseudotime:
+        x = -1 * adata.obs["isomap_1"].values
+    else:
+        x = adata.obs["isomap_1"].values
+
+    # Retrieve the expression and velocity data
+    if plot_type == "unspliced":
+        y_velocity = adata.layers["velocity_u"][:, adata.var_names.get_loc(gene_name)]
+        y_expr = adata.layers["Mu"][:, adata.var_names.get_loc(gene_name)]
+        expression_label = "Unspliced"
+    else:
+        y_velocity = adata.layers["velocity"][:, adata.var_names.get_loc(gene_name)]
+        y_expr = adata.layers["Ms"][:, adata.var_names.get_loc(gene_name)]
+        expression_label = "Spliced"
+
+    # Ensure x, y_velocity, and y_expr are numpy arrays
+    x = np.array(x)
+    y_velocity = np.array(y_velocity)
+    y_expr = np.array(y_expr)
+
+    # Find the index of the smallest x-value
+    smallest_x_index = np.argmin(x)
+
+    # Store original expression value at the smallest x before shifting
+    initial_y_expr_smallest_x = y_expr[smallest_x_index]
+
+    # Apply the shift to the expression data
+    y_expr_shifted = y_expr + shift_expression
+
+    # Get the new expression value after shift for the smallest x observation
+    shifted_y_expr_smallest_x = y_expr_shifted[smallest_x_index]
+
+    # Scale velocity data
+    y_velocity_scaled = y_velocity * scale_velocity
+
+    # Get the cluster labels and corresponding colors
+    clusters = adata.obs[cell_type_key].astype(str)
+    cluster_categories = clusters.unique()
+    cluster_colors = adata.uns.get(f"{cell_type_key}_colors", ['blue'] * len(cluster_categories))
+
+    # Map clusters to colors
+    cluster_color_map = dict(zip(cluster_categories, cluster_colors))
+    colors = clusters.map(cluster_color_map).values
+
+    # Create the plot with increased figure height
+    fig, ax = plt.subplots(figsize=(8, 8))  # Increased height from 6 to 8
+
+    # Scatter plot for velocity with cluster-based colors
+    ax.scatter(x, y_velocity_scaled, label=f"{expression_label} velocity (x{scale_velocity})",
+               c=colors, alpha=0.6)
+
+    # Scatter plot for shifted expression with black edge color
+    ax.scatter(x, y_expr_shifted, label=f"{expression_label} expression",
+               edgecolor='black', c=colors, facecolors='none')
+
+    # Adjust y-limits to ensure the arrow is visible
+    # Include start_y and end_y in the y-limits calculation
+    all_y = np.concatenate([y_velocity_scaled, y_expr_shifted, [initial_y_expr_smallest_x, shifted_y_expr_smallest_x]])
+    y_min, y_max = np.min(all_y), np.max(all_y)
+    y_range = y_max - y_min
+    y_buffer = y_range * 0.1  # Add 10% buffer
+
+    # Adjust y-limits to include the arrow completely
+    ax.set_ylim(y_min - y_buffer, y_max + y_buffer)
+
+    # Adjust layout to prevent the title from overlapping
+    plt.subplots_adjust(top=0.9, bottom=0.1)
+
+    # Add an arrow indicating the shift at the smallest x
+    if plot_shift and shift_expression != 0:
+        x_pos = x[smallest_x_index]
+
+        # Arrow properties with clipping enabled
+        arrowprops = dict(facecolor='red', edgecolor='red', linestyle='--', arrowstyle='-|>',
+                          lw=3, mutation_scale=20, clip_on=True)
+
+        # Start and end points for the arrow
+        start_y = initial_y_expr_smallest_x
+        end_y = shifted_y_expr_smallest_x
+
+        # Draw the arrow (ensure start_y and end_y are different)
+        if start_y != end_y:
+            ax.annotate('', xy=(x_pos, end_y), xytext=(x_pos, start_y), arrowprops=arrowprops)
+
+            # Add vertical ticks at the base and head of the arrow
+            tick_length = 0.02 * (x.max() - x.min())
+            ax.plot([x_pos - tick_length, x_pos + tick_length], [start_y, start_y], color='red', lw=3)
+            ax.plot([x_pos - tick_length, x_pos + tick_length], [end_y, end_y], color='red', lw=3)
+
+            # Create a custom legend handle for the arrow
+            arrow_handle = Line2D([0], [0], color='red', lw=3, linestyle='--',
+                                  marker='|', markersize=10, markerfacecolor='red', markeredgecolor='red')
+
+            # Add the arrow handle to the legend
+            handles, labels = ax.get_legend_handles_labels()
+            handles_labels = dict(zip(labels, handles))
+            handles_labels[f'Expression shift ({shift_expression})'] = arrow_handle
+
+            # Update the legend
+            ax.legend(handles_labels.values(), handles_labels.keys(),
+                      fontsize=legend_fontsize, loc='upper right')
+        else:
+            # Create legend without arrow
+            handles, labels = ax.get_legend_handles_labels()
+            handles_labels = dict(zip(labels, handles))
+            ax.legend(handles_labels.values(), handles_labels.keys(),
+                      fontsize=legend_fontsize, loc='upper right')
+    else:
+        # Create legend without arrow
+        handles, labels = ax.get_legend_handles_labels()
+        handles_labels = dict(zip(labels, handles))
+        ax.legend(handles_labels.values(), handles_labels.keys(),
+                  fontsize=legend_fontsize, loc='upper right')
+
+    # Add a dashed horizontal black line at y = 0
+    ax.axhline(0, color='black', linestyle='--', lw=1)
+
+    # Add labels and title
+    ax.set_title(f"{expression_label} expression and velocity of {gene_name} over pseudotime",
+                 fontsize=title_fontsize)
+    ax.set_xlabel("Pseudotime", fontsize=axis_fontsize)
+    ax.set_ylabel(f"{expression_label} expression and velocity", fontsize=axis_fontsize)
+
+    # Adjust tick font size
+    ax.tick_params(axis='both', which='major', labelsize=tick_fontsize)
+
+    if save_plot:
+        plt.savefig(save_path)
+
+    plt.tight_layout()
+    plt.show()
+
 
 def plot_phase_plane(adata, gene_name, dataset, K, u_scale=.01, s_scale=0.01, alpha=0.5, head_width=0.02, head_length=0.03, length_includes_head=False, log=False,
                         norm_velocity=True, filter_cells=False, smooth_expr=True, show_plot=True, save_plot=True, save_path=".",
-                        cell_type_key="clusters"):
+                        cell_type_key="clusters",title_fontsize=16, axis_fontsize=14, legend_fontsize=14, tick_fontsize=12):
 
     if smooth_expr:
         unspliced_expression = adata.layers["Mu"][:, adata.var_names.get_loc(gene_name)].flatten() 
@@ -96,28 +258,26 @@ def plot_phase_plane(adata, gene_name, dataset, K, u_scale=.01, s_scale=0.01, al
             color=arrow_color, alpha=alpha, head_width=head_width, head_length=head_length, length_includes_head=length_includes_head
         )
 
-    plt.ylabel(f'Normalized Unspliced Expression of {gene_name}')
-    plt.xlabel(f'Normalized Spliced Expression of {gene_name}')
-    plt.title(f'Expression and Velocity of {gene_name} by Cell Type')
+    plt.ylabel(f'Normalized Unspliced Expression of {gene_name}', fontsize=axis_fontsize)
+    plt.xlabel(f'Normalized Spliced Expression of {gene_name}', fontsize=axis_fontsize)
+    plt.title(f'Expression and Velocity of {gene_name} by Cell Type', fontsize=title_fontsize)
+
+    # Increase the font size of the tick labels
+    plt.xticks(fontsize=tick_fontsize)
+    plt.yticks(fontsize=tick_fontsize)
 
     # Create a legend
     patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=celltype_to_color[celltype], markersize=10, label=celltype) 
             for celltype in unique_cell_types]
-    plt.legend(handles=patches, title="Cell Type", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.legend(handles=patches, title="Cell Type", bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=legend_fontsize, title_fontsize=title_fontsize)
 
-    
+    plt.show()
 
     if save_plot:
         plt.savefig(save_path, format='png', bbox_inches='tight')
         print(f"Plot saved to {save_path}")
 
-    # Check if show_plot is True, then display the plot
-    if show_plot:
-        plt.show()
-    else:
-        plt.close()
 
-    plt.show()
 
 import os
 import torch
