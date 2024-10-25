@@ -10,6 +10,445 @@ import matplotlib.patches as mpatches
 import seaborn as sns
 from utils import fetch_relevant_terms
 from sklearn.manifold import Isomap
+
+def plot_activation_or_velocity_two_gene_programs(adata, gene_name1, gene_name2, plot_type="activation",
+                             title_fontsize=16, axis_fontsize=14, legend_fontsize=12, tick_fontsize=12,
+                             legend_title_fontsize=14, cell_type_key="clusters", save_path=".", save_plot=False,
+                             scale_expr1=1, shift_expr1=0, scale_expr2=1, shift_expr2=0,
+                             reverse_pseudotime=False, use_cell_type_colors=True):
+    """
+    Function to plot the activation or velocity data for two gene programs over pseudotime.
+    Option to use either cell type colors or distinct colors for the two gene programs.
+
+    Parameters:
+        adata: AnnData object containing the data.
+        gene_name1: Name of the first gene program to plot.
+        gene_name2: Name of the second gene program to plot.
+        plot_type: "activation" or "velocity" to decide what to plot.
+        title_fontsize: Font size for the title.
+        axis_fontsize: Font size for the axes labels.
+        legend_fontsize: Font size for the legend.
+        tick_fontsize: Font size for the tick labels.
+        legend_title_fontsize: Font size for the legend title.
+        cell_type_key: Key in adata.obs for cell type annotations.
+        save_path: Path to save the plot if save_plot is True.
+        save_plot: Whether to save the plot.
+        scale_expr1: Factor to scale the first gene program data.
+        shift_expr1: Value to shift the first gene program data.
+        scale_expr2: Factor to scale the second gene program data.
+        shift_expr2: Value to shift the second gene program data.
+        reverse_pseudotime: Whether to reverse the pseudotime axis.
+        use_cell_type_colors: Whether to use cell type colors or two distinct colors for the gene programs.
+    """
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # Retrieve the pseudotime data
+    if reverse_pseudotime:
+        x = -1 * adata.obs["isomap_1"].values
+    else:
+        x = adata.obs["isomap_1"].values
+
+    # Decide whether to plot activation or velocity
+    if plot_type == "activation":
+        y1 = adata.X[:, adata.var_names.get_loc(gene_name1)]
+        y2 = adata.X[:, adata.var_names.get_loc(gene_name2)]
+        y_label = "Activation"
+    elif plot_type == "velocity":
+        y1 = adata.layers["velocity"][:, adata.var_names.get_loc(gene_name1)]
+        y2 = adata.layers["velocity"][:, adata.var_names.get_loc(gene_name2)]
+        y_label = "Velocity"
+    else:
+        raise ValueError("Invalid plot_type. Must be 'activation' or 'velocity'.")
+
+    # Scale and shift the data for both gene programs
+    y1_shifted = y1 * scale_expr1 + shift_expr1
+    y2_shifted = y2 * scale_expr2 + shift_expr2
+
+    # Helper function to format the scale and shift for the legend
+    def format_scale_shift(scale, shift):
+        if shift >= 0:
+            return f"x{scale}, +{shift}"
+        else:
+            return f"x{scale}, {shift}"
+
+    # Retrieve unique cell types and corresponding colors from adata.uns
+    if use_cell_type_colors:
+        unique_cell_types = adata.obs[cell_type_key].cat.categories
+        celltype_colors = adata.uns[f"{cell_type_key}_colors"]
+        # Create a mapping of cell type to its color
+        celltype_to_color = dict(zip(unique_cell_types, celltype_colors))
+        # Map clusters to colors using the consistent cell type coloring
+        clusters = adata.obs[cell_type_key].astype(str)
+        colors1 = clusters.map(celltype_to_color).to_numpy()
+        colors2 = colors1  # Same color scheme for both gene programs
+        
+        # Differentiate by removing the black border from one gene program
+        edgecolor1 = 'black'
+        edgecolor2 = 'none'  # Ball-like appearance without a black border
+        marker1 = 'o'  # Circle marker for both
+        marker2 = 'o'
+    else:
+        # Use two distinct colors (blue and red) for the two gene programs with black borders
+        colors1 = ['blue'] * len(x)
+        colors2 = ['red'] * len(x)
+        marker1 = 'o'  # Both use circle markers
+        marker2 = 'o'
+        edgecolor1 = 'black'
+        edgecolor2 = 'black'
+
+    # Create the plot
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    # Plot gene program 1
+    ax.scatter(x, y1_shifted, label=f"{gene_name1} ({format_scale_shift(scale_expr1, shift_expr1)})", 
+               edgecolor=edgecolor1, c=colors1, facecolors='none', alpha=0.6, marker=marker1)
+
+    # Plot gene program 2
+    ax.scatter(x, y2_shifted, label=f"{gene_name2} ({format_scale_shift(scale_expr2, shift_expr2)})", 
+               edgecolor=edgecolor2, c=colors2, facecolors='none', alpha=0.6, marker=marker2)
+
+    # Add a horizontal dashed line at y = 0
+    ax.axhline(0, color='black', linestyle='--', lw=1)
+
+    # Adjust y-limits to ensure all points are visible
+    all_y = np.concatenate([y1_shifted, y2_shifted])
+    y_min, y_max = np.min(all_y), np.max(all_y)
+    y_range = y_max - y_min
+    y_buffer = y_range * 0.1
+    ax.set_ylim(y_min - y_buffer, y_max + y_buffer)
+
+    # Add labels and title
+    ax.set_title(f"{gene_name1} & {gene_name2}", fontsize=title_fontsize)
+    ax.set_xlabel("Pseudotime", fontsize=axis_fontsize)
+    ax.set_ylabel(y_label, fontsize=axis_fontsize)
+    ax.tick_params(axis='both', which='major', labelsize=tick_fontsize)
+
+    # Custom legend to indicate both gene programs
+    ax.legend(fontsize=legend_fontsize, loc='upper right')
+
+    if save_plot:
+        plt.savefig(save_path)
+
+    plt.tight_layout()
+    plt.show()
+
+def gp_phase_plane_no_velocity(adata, gp1, gp2, dataset, K, u_scale=.01, s_scale=0.01, alpha=0.5, head_width=0.02, head_length=0.03, length_includes_head=False, log=False,
+                    norm_velocity=True, filter_cells=False, smooth_expr=True, show_plot=True, save_plot=True, save_path=".",
+                    cell_type_key="clusters", title_fontsize=16, axis_fontsize=14, legend_fontsize=14, tick_fontsize=12,
+                    scale_expression=1):
+
+    unspliced_expression = adata.X[:, adata.var_names.get_loc(gp1)].flatten() * scale_expression 
+    spliced_expression = adata.X[:, adata.var_names.get_loc(gp2)].flatten() * scale_expression 
+
+    # Normalize the expression data
+    unspliced_expression_min, unspliced_expression_max = np.min(unspliced_expression), np.max(unspliced_expression)
+    spliced_expression_min, spliced_expression_max = np.min(spliced_expression), np.max(spliced_expression)
+
+    # Min-Max normalization
+    #unspliced_expression = (unspliced_expression - unspliced_expression_min) / (unspliced_expression_max - unspliced_expression_min)
+    #spliced_expression = (spliced_expression - spliced_expression_min) / (spliced_expression_max - spliced_expression_min)
+
+    # Generate boolean masks for conditions and apply them
+    """if filter_cells:
+        valid_idx = (unspliced_expression > 0) & (spliced_expression > 0)
+    else:
+        valid_idx = (unspliced_expression >= 0) & (spliced_expression >= 0)
+    """
+    valid_idx = np.ones_like(unspliced_expression, dtype=bool)  # No filtering, include all observations
+    # Filter data based on valid_idx
+    unspliced_expression_filtered = unspliced_expression[valid_idx]
+    spliced_expression_filtered = spliced_expression[valid_idx]
+
+    # Also filter cell type information to match the filtered expressions
+    unique_cell_types = adata.obs[cell_type_key].cat.categories
+    celltype_colors = adata.uns[f"{cell_type_key}_colors"]
+    celltype_to_color = dict(zip(unique_cell_types, celltype_colors))
+
+    cell_types_filtered = adata.obs[cell_type_key][valid_idx]
+    colors = cell_types_filtered.map(celltype_to_color).to_numpy()
+
+    plt.figure(figsize=(9, 6.5), dpi=100)
+    scatter = plt.scatter(spliced_expression_filtered, unspliced_expression_filtered, c=colors, alpha=0.6)
+
+    # Labeling and other plot aesthetics
+    plt.ylabel(f'Norm. {gp1} Activation', fontsize=axis_fontsize)
+    plt.xlabel(f'Norm. {gp2} Activation', fontsize=axis_fontsize)
+    plt.title(f'{gp1} & {gp2}', fontsize=title_fontsize)
+
+    plt.xticks(fontsize=tick_fontsize)
+    plt.yticks(fontsize=tick_fontsize)
+
+    # Create a legend
+    patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=celltype_to_color[celltype], markersize=10, label=celltype) 
+            for celltype in unique_cell_types]
+    plt.legend(handles=patches, title="Cell Type", bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=legend_fontsize, title_fontsize=title_fontsize)
+
+    # Save the plot before showing
+    if save_plot:
+        plt.savefig(save_path, format='png', bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+
+    plt.show()
+    plt.close()
+
+def plot_phase_plane_gp(adata, gp1, gp2, dataset, K, u_scale=.01, s_scale=0.01, alpha=0.5, head_width=0.02, head_length=0.03, length_includes_head=False, log=False,
+                        norm_velocity=True, filter_cells=False, smooth_expr=True, show_plot=True, save_plot=True, save_path=".",
+                        cell_type_key="clusters",title_fontsize=16, axis_fontsize=14, legend_fontsize=14, tick_fontsize=12,
+                        scale_expression=1):
+
+    unspliced_expression = adata.X[:, adata.var_names.get_loc(gp1)].flatten() * scale_expression 
+    spliced_expression = adata.X[:, adata.var_names.get_loc(gp2)].flatten() * scale_expression 
+
+    # Normalize the expression data
+    unspliced_expression_min, unspliced_expression_max = np.min(unspliced_expression), np.max(unspliced_expression)
+    spliced_expression_min, spliced_expression_max = np.min(spliced_expression), np.max(spliced_expression)
+
+    # Min-Max normalization
+    unspliced_expression = (unspliced_expression - unspliced_expression_min) / (unspliced_expression_max - unspliced_expression_min)
+    spliced_expression = (spliced_expression - spliced_expression_min) / (spliced_expression_max - spliced_expression_min)
+
+    # Extract the velocity data
+    unspliced_velocity = adata.layers['velocity'][:, adata.var_names.get_loc(gp1)].flatten()
+    spliced_velocity = adata.layers['velocity'][:, adata.var_names.get_loc(gp2)].flatten()
+
+    def custom_scale(data):
+        max_abs_value = np.max(np.abs(data))  # Find the maximum absolute value
+        scaled_data = data / max_abs_value  # Scale by the maximum absolute value
+        return scaled_data
+
+    if norm_velocity:
+        unspliced_velocity = custom_scale(unspliced_velocity)
+        spliced_velocity = custom_scale(spliced_velocity)
+
+
+    # Apply any desired transformations (e.g., log) here
+    if log:
+        # Apply log transformation safely, ensuring no log(0)
+        unspliced_velocity = np.log1p(unspliced_velocity)
+        spliced_velocity = np.log1p(spliced_velocity)
+
+    # Generate boolean masks for conditions and apply them
+    if filter_cells:
+        valid_idx = (unspliced_expression > 0) & (spliced_expression > 0)
+    else:
+        valid_idx = (unspliced_expression >= 0) & (spliced_expression >= 0)
+
+    valid_idx = np.ones_like(unspliced_expression, dtype=bool)  # No filtering, include all observations
+    # Filter data based on valid_idx
+    unspliced_expression_filtered = unspliced_expression[valid_idx]
+    spliced_expression_filtered = spliced_expression[valid_idx]
+    unspliced_velocity_filtered = unspliced_velocity[valid_idx]
+    spliced_velocity_filtered = spliced_velocity[valid_idx]
+
+    # Also filter cell type information to match the filtered expressions
+    # First, get unique cell types and their corresponding colors
+    unique_cell_types = adata.obs[cell_type_key].cat.categories
+    celltype_colors = adata.uns[f"{cell_type_key}_colors"]
+    
+    # Create a mapping of cell type to its color
+    celltype_to_color = dict(zip(unique_cell_types, celltype_colors))
+
+    # Filter cell types from the data to get a list of colors for the filtered data points
+    cell_types_filtered = adata.obs[cell_type_key][valid_idx]
+    colors = cell_types_filtered.map(celltype_to_color).to_numpy()
+    plt.figure(figsize=(9, 6.5), dpi=100)
+  # Lower dpi here if the file is still too large    scatter = plt.scatter(unspliced_expression_filtered, spliced_expression_filtered, c=colors, alpha=0.6)
+
+    """# Plot velocity vectors
+    for i in range(len(unspliced_expression_filtered)):
+        cell_type_index = np.where(unique_cell_types == cell_types_filtered[i])[0][0]
+        arrow_color = celltype_to_color[cell_types_filtered[i]]  # Use the color corresponding to the cell type
+        plt.arrow(
+            unspliced_expression_filtered[i], spliced_expression_filtered[i], 
+            unspliced_velocity_filtered[i] * u_scale, spliced_velocity_filtered[i] * s_scale, 
+            color=arrow_color, alpha=alpha, head_width=head_width, head_length=head_length, length_includes_head=length_includes_head
+        )"""
+
+    # Plot velocity vectors
+    for i in range(len(unspliced_expression_filtered)):
+        cell_type_index = np.where(unique_cell_types == cell_types_filtered[i])[0][0]
+        arrow_color = celltype_to_color[cell_types_filtered[i]]  # Use the color corresponding to the cell type
+        plt.arrow(
+            spliced_expression_filtered[i], unspliced_expression_filtered[i], 
+            spliced_velocity_filtered[i] * s_scale, unspliced_velocity_filtered[i] * u_scale, 
+            color=arrow_color, alpha=alpha, head_width=head_width, head_length=head_length, length_includes_head=length_includes_head
+        )
+
+    plt.ylabel(f'Norm. {gp1} Activation & Velocity', fontsize=axis_fontsize)
+    plt.xlabel(f'Norm. {gp2} Activation & Velocity', fontsize=axis_fontsize)
+    plt.title(f'{gp1} & {gp2}', fontsize=title_fontsize)
+
+    # Increase the font size of the tick labels
+    plt.xticks(fontsize=tick_fontsize)
+    plt.yticks(fontsize=tick_fontsize)
+
+    # Create a legend
+    patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=celltype_to_color[celltype], markersize=10, label=celltype) 
+               for celltype in unique_cell_types]
+    plt.legend(handles=patches, title="Cell Type", bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=legend_fontsize, title_fontsize=title_fontsize)
+
+    # Save the plot before showing
+    if save_plot:
+        plt.savefig(save_path, format='png', bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+
+    plt.show()
+    plt.close()
+
+
+def plot_velocity_expression_gp(adata, gene_name, plot_type="spliced",
+                             title_fontsize=16, axis_fontsize=14, legend_fontsize=12, tick_fontsize=12,
+                             legend_title_fontsize=14, cell_type_key="clusters", save_path=".", save_plot=False,
+                             scale_velocity=1, shift_expression=0, scale_expression=1, plot_shift=True,
+                             reverse_pseudotime=False, use_cell_type_colors=True):
+    """
+    Function to plot the unnormalized spliced or unspliced velocity and expression data,
+    with options for scaling and shifting.
+
+    Parameters:
+        adata: AnnData object containing the data.
+        gene_name: Name of the gene to plot.
+        plot_type: "unspliced" or "spliced" to choose which data to plot.
+        title_fontsize: Font size for the title.
+        axis_fontsize: Font size for the axes labels.
+        legend_fontsize: Font size for the legend.
+        tick_fontsize: Font size for the tick labels.
+        legend_title_fontsize: Font size for the legend title.
+        cell_type_key: Key in adata.obs for cell type annotations.
+        save_path: Path to save the plot if save_plot is True.
+        save_plot: Whether to save the plot.
+        scale_velocity: Factor to scale the velocity data.
+        shift_expression: Value to shift the expression data.
+        plot_shift: Whether to plot the shift arrow.
+        reverse_pseudotime: Whether to reverse the pseudotime axis.
+        use_cell_type_colors: Whether to use original cell type colors or red/blue coloring.
+    """
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+
+    # Retrieve the pseudotime data
+    if reverse_pseudotime:
+        x = -1 * adata.obs["isomap_1"].values
+    else:
+        x = adata.obs["isomap_1"].values
+
+    y_velocity = adata.layers["velocity"][:, adata.var_names.get_loc(gene_name)]
+    y_expr = adata.X[:, adata.var_names.get_loc(gene_name)]
+    expression_label = "Gene program"
+
+    # Ensure x, y_velocity, and y_expr are numpy arrays
+    x = np.array(x)
+    y_velocity = np.array(y_velocity)
+    y_expr = np.array(y_expr)
+
+    # Find the index of the smallest x-value
+    smallest_x_index = np.argmin(x)
+
+    # Store original expression value at the smallest x before shifting
+    initial_y_expr_smallest_x = y_expr[smallest_x_index]
+
+    # Apply the shift to the expression data
+    y_expr_shifted = y_expr * scale_expression
+    y_expr_shifted = y_expr + shift_expression
+
+    # Get the new expression value after shift for the smallest x observation
+    shifted_y_expr_smallest_x = y_expr_shifted[smallest_x_index]
+
+    # Scale velocity data
+    y_velocity_scaled = y_velocity * scale_velocity
+
+    # Choose colors based on the flag
+    if use_cell_type_colors:
+        # Retrieve unique cell types and corresponding colors from adata.uns
+        unique_cell_types = adata.obs[cell_type_key].cat.categories
+        celltype_colors = adata.uns[f"{cell_type_key}_colors"]
+
+        # Create a mapping of cell type to its color
+        celltype_to_color = dict(zip(unique_cell_types, celltype_colors))
+
+        # Map clusters to colors using the consistent cell type coloring
+        clusters = adata.obs[cell_type_key].astype(str)
+        colors_velocity = clusters.map(celltype_to_color).to_numpy()
+        colors_activation = colors_velocity  # Use the same color scheme for both
+    else:
+        # Use blue for velocity and red for activation
+        colors_velocity = ['blue'] * len(x)
+        colors_activation = ['red'] * len(x)
+
+    # Create the plot with increased figure height
+    fig, ax = plt.subplots(figsize=(8, 8))  # Increased height from 6 to 8
+
+    # Scatter plot for velocity with the chosen colors
+    ax.scatter(x, y_velocity_scaled, label=f"{expression_label} velocity (x{scale_velocity})",
+               c=colors_velocity, alpha=0.6)
+
+    # Scatter plot for shifted expression with black edge color
+    ax.scatter(x, y_expr_shifted, label=f"{expression_label} activation",
+               edgecolor='black', c=colors_activation, facecolors='none')
+
+    # Adjust y-limits to ensure the arrow is visible
+    all_y = np.concatenate([y_velocity_scaled, y_expr_shifted, [initial_y_expr_smallest_x, shifted_y_expr_smallest_x]])
+    y_min, y_max = np.min(all_y), np.max(all_y)
+    y_range = y_max - y_min
+    y_buffer = y_range * 0.1  # Add 10% buffer
+
+    ax.set_ylim(y_min - y_buffer, y_max + y_buffer)
+    plt.subplots_adjust(top=0.9, bottom=0.1)
+
+    # Add an arrow indicating the shift at the smallest x
+    if plot_shift and shift_expression != 0:
+        x_pos = x[smallest_x_index]
+        arrowprops = dict(facecolor='red', edgecolor='red', linestyle='--', arrowstyle='-|>',
+                          lw=3, mutation_scale=20, clip_on=True)
+
+        start_y = initial_y_expr_smallest_x
+        end_y = shifted_y_expr_smallest_x
+
+        if start_y != end_y:
+            ax.annotate('', xy=(x_pos, end_y), xytext=(x_pos, start_y), arrowprops=arrowprops)
+
+            tick_length = 0.02 * (x.max() - x.min())
+            ax.plot([x_pos - tick_length, x_pos + tick_length], [start_y, start_y], color='red', lw=3)
+            ax.plot([x_pos - tick_length, x_pos + tick_length], [end_y, end_y], color='red', lw=3)
+
+            arrow_handle = Line2D([0], [0], color='red', lw=3, linestyle='--',
+                                  marker='|', markersize=10, markerfacecolor='red', markeredgecolor='red')
+            handles, labels = ax.get_legend_handles_labels()
+            handles_labels = dict(zip(labels, handles))
+            handles_labels[f'Activation shift ({shift_expression})'] = arrow_handle
+            ax.legend(handles_labels.values(), handles_labels.keys(),
+                      fontsize=legend_fontsize, loc='upper right')
+        else:
+            handles, labels = ax.get_legend_handles_labels()
+            handles_labels = dict(zip(labels, handles))
+            ax.legend(handles_labels.values(), handles_labels.keys(),
+                      fontsize=legend_fontsize, loc='upper right')
+    
+    else:
+        handles, labels = ax.get_legend_handles_labels()
+        handles_labels = dict(zip(labels, handles))
+        ax.legend(handles_labels.values(), handles_labels.keys(),
+                  fontsize=legend_fontsize, loc='upper right')
+
+    ax.axhline(0, color='black', linestyle='--', lw=1)
+
+    ax.set_title(f"{gene_name}",
+                 fontsize=title_fontsize)
+    ax.set_xlabel("Pseudotime", fontsize=axis_fontsize)
+    ax.set_ylabel(f"Gene Program Activation & Velocity", fontsize=axis_fontsize)
+
+    ax.tick_params(axis='both', which='major', labelsize=tick_fontsize)
+
+    if save_plot:
+        plt.savefig(save_path)
+
+    plt.tight_layout()
+    plt.show()
+
+
+
 def plot_velocity_expression(adata, gene_name, plot_type="spliced",
                              title_fontsize=16, axis_fontsize=14, legend_fontsize=12, tick_fontsize=12,
                              legend_title_fontsize=14, cell_type_key="clusters", save_path=".", save_plot=False,
