@@ -70,7 +70,7 @@ for dataset, cell_type_key in zip(datasets, cell_type_keys):
         print_stats=True
     )
 
-    adata.obsm['z'] = intr_cvae.get_latent(mean=False, only_active=True)
+    adata.obsm['z'] = intr_cvae.get_latent(mean=False, only_active=False)
     sc.pp.neighbors(adata, use_rep='z')
     sc.tl.umap(adata)
     sc.pl.umap(adata, color=[cell_type_key], frameon=False)

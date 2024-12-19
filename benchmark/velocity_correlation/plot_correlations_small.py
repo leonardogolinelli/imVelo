@@ -25,7 +25,7 @@ def create_one_vs_all_plots(correlations, corr_type, dataset, model):
             if model_pair in correlations[dataset]:
                 corr = correlations[dataset][model_pair].flatten()  # Flatten the array for plotting
                 all_correlations.append(corr)
-                labels.append(f"{other_model}")
+                labels.append(f"{model} vs {other_model}")
     
     # If no correlations were found, skip the plotting
     if not all_correlations:
@@ -38,15 +38,15 @@ def create_one_vs_all_plots(correlations, corr_type, dataset, model):
     
     # Set x-ticks and labels
     ax.set_xticks(range(1, len(labels) + 1))
-    ax.set_xticklabels(labels, rotation=45, fontsize=18)
+    ax.set_xticklabels(labels, rotation=90)
     
-    # Add titles and labels with increased font size
-    ax.set_title(f'{corr_type.capitalize()} Correlations for {model} vs All in {dataset}', fontsize=25)
-    ax.set_xlabel('Model Comparisons', fontsize=18)
-    ax.set_ylabel(f'{corr_type.capitalize()} Correlations', fontsize=18)
+    # Add titles and labels
+    ax.set_title(f'{corr_type.capitalize()} Correlations for {model} vs All in {dataset}')
+    ax.set_xlabel('Model Comparisons')
+    ax.set_ylabel(f'{corr_type.capitalize()} Correlations')
     
     # Save the plot as an image in a subfolder named after the model within the dataset folder
-    folder = f"plots/{dataset}_correlation_plots/{model}_vs_all"
+    folder = f"./{dataset}_correlation_plots/{model}_vs_all"
     if not os.path.exists(folder):
         os.makedirs(folder)
     

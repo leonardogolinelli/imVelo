@@ -32,6 +32,7 @@ class Encoder(nn.Module):
         x = self.net(x)
         self.z_mean = self.fc_mean(x)
         self.z_log_var = self.fc_log_var(x)
+        #TO FIX: USE REPARAMETRIZE ONLY DURING TRAINING - DON'T USE IT DURING EVALUATION
         self.z = self._reparametrize(self.z_mean, self.z_log_var)
         return self.z_mean, self.z_log_var, self.z
 

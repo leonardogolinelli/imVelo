@@ -48,10 +48,10 @@ def generate_violin_plots(dataset, metric):
         # Create violin plot
         plt.figure(figsize=(10, 6))
         sns.violinplot(data=confidences)
-        plt.xticks(ticks=range(len(model_labels)), labels=model_labels, rotation=45)
-        plt.title(f"{metric.capitalize()} Violin Plots for {dataset.capitalize()}")
-        plt.ylabel(metric.capitalize())
-        plt.xlabel("Models")
+        plt.xticks(ticks=range(len(model_labels)), labels=model_labels, rotation=45, fontsize=18)
+        plt.title(f"{metric.capitalize()} Violin Plots for {dataset.capitalize()}", fontsize=25)
+        plt.ylabel(metric.capitalize(), fontsize=18)
+        plt.xlabel("Models", fontsize=18)
 
         # Save plot
         output_file = os.path.join(output_dirs[metric], f"{dataset}_{metric}_violin_plot.png")

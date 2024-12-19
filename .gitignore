@@ -117,3 +117,13 @@ benchmark/velocity_correlation/gene_wise_correlations.pkl
 benchmark/velocity_correlation/cell_wise_correlations.pkl
 
 downstream/phase_plane_plots
+benchmark/velocity_coherence/plots/
+benchmark/velocity_coherence/plots_v3/
+benchmark/velocity_coherence/plots_v4/
+benchmark/velocity_confidence_uncertainty/plots_smaller/*
+benchmark/velocity_correlation/plots_small/*
+benchmark/velocity_length/plots/
+benchmark/velocity_length/__pycache__/plot_functions.cpython-311.pyc
+thesis/dataset_exploration/gastrulation_cells.png
+thesis/dataset_exploration/progress_dataset.txt
+thesis/dataset_exploration/__pycache__/plot.cpython-311.pyc

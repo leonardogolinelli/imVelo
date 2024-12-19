@@ -221,7 +221,7 @@ class Trainer:
                 if param_group['tag'] == 'encoder':
                     param_group['lr'] = self.base_lr  * (1e-3 if learn_kinetics else 1)
                 elif param_group['tag'] == 'linear_decoder':
-                    param_group['lr'] = self.base_lr  (1e-3 if learn_kinetics else 1)
+                    param_group['lr'] = self.base_lr * (1e-3 if learn_kinetics else 1)
                 elif param_group['tag'] == 'kinetics_decoder':
                     param_group['lr'] = self.base_lr * (1e-3 if learn_kinetics else 0)
                 else:

@@ -1,0 +1,112 @@
+PANCREAS
+
+# Training parameters
+model_hidden_dim = 512
+K= K
+train_size = 1
+batch_size = 256
+n_epochs = 10400
+first_regime_end = 10000
+kl_start = 1e-9
+kl_weight_upper = 1e-8
+base_lr = 1e-4
+recon_loss_weight = 1
+empirical_loss_weight = 1
+p_loss_weight = 1e-1
+split_data = False
+weight_decay = 1e-4
+load_last = True
+
+if param_group['tag'] == 'encoder':
+    param_group['lr'] = self.base_lr  * (1e-1 if learn_kinetics else 1)
+elif param_group['tag'] == 'linear_decoder':
+    param_group['lr'] = self.base_lr  (1e-1 if learn_kinetics else 1)
+elif param_group['tag'] == 'kinetics_decoder':
+    param_group['lr'] = self.base_lr * (1e-1 if learn_kinetics else 0)
+
+
+FOREBRAIN
+
+
+# Training parameters
+model_hidden_dim = 512
+K= K
+train_size = 1
+batch_size = 1720
+n_epochs = 20100
+first_regime_end = 20000
+kl_start = 1e-9
+kl_weight_upper = 1e-8
+base_lr = 1e-4
+recon_loss_weight = 1
+empirical_loss_weight = 1
+p_loss_weight = 1e-1
+split_data = False
+weight_decay = 1e-4
+load_last = True
+
+
+for param_group in self.optimizer.param_groups:
+    if 'tag' in param_group:
+        if param_group['tag'] == 'encoder':
+            param_group['lr'] = self.base_lr  * (1e-3 if learn_kinetics else 1)
+        elif param_group['tag'] == 'linear_decoder':
+            param_group['lr'] = self.base_lr  (1e-3 if learn_kinetics else 1)
+        elif param_group['tag'] == 'kinetics_decoder':
+            param_group['lr'] = self.base_lr * (1e-3 if learn_kinetics else 0)
+        else:
+            param_group['lr'] = self.base_lr  # Default scaling for other parts
+
+
+
+GASTRULATION ERYTHROID
+ 
+
+# Training parameters
+model_hidden_dim = 512
+K= K
+train_size = 1
+batch_size = 1024
+n_epochs = 20500
+first_regime_end = 20000
+kl_start = 1e-9
+kl_weight_upper = 1e-8
+base_lr = 1e-4
+recon_loss_weight = 1
+empirical_loss_weight = 1
+p_loss_weight = 1e-1
+split_data = False
+weight_decay = 1e-4
+load_last = True
+
+
+for param_group in self.optimizer.param_groups:
+    if 'tag' in param_group:
+        if param_group['tag'] == 'encoder':
+            param_group['lr'] = self.base_lr  * (1e-3 if learn_kinetics else 1)
+        elif param_group['tag'] == 'linear_decoder':
+            param_group['lr'] = self.base_lr  (1e-3 if learn_kinetics else 1)
+        elif param_group['tag'] == 'kinetics_decoder':
+            param_group['lr'] = self.base_lr * (1e-3 if learn_kinetics else 0)
+        else:
+            param_group['lr'] = self.base_lr  # Default scaling for other parts
+
+
+DENTATEGYRUS LAMANNO
+
+# Training parameters
+model_hidden_dim = 512
+K= K
+train_size = 1
+batch_size = 256
+n_epochs = 20500
+first_regime_end = 20000
+kl_start = 1e-9
+kl_weight_upper = 1e-8
+base_lr = 1e-4
+recon_loss_weight = 1
+empirical_loss_weight = 1
+p_loss_weight = 1e-1
+split_data = False
+weight_decay = 1e-4
+load_last = True
