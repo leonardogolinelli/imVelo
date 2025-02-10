@@ -127,3 +127,4 @@ benchmark/velocity_length/__pycache__/plot_functions.cpython-311.pyc
 thesis/dataset_exploration/gastrulation_cells.png
 thesis/dataset_exploration/progress_dataset.txt
 thesis/dataset_exploration/__pycache__/plot.cpython-311.pyc
+pancreas_go_mask.h5ad
