@@ -4,4 +4,4 @@ Created at Theis Lab - Helmholtz Munich for my MSc Thesis in Quantitative in Com
 
 Repo needs to be refined: missing installation specifications \ API \ code clean up.
 
-Please contact me if you plan to use this at leogolinelli@gmail.com
+Please contact me if you plan to use any of this code at leogolinelli@gmail.com
