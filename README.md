@@ -4,6 +4,6 @@ A novel interpretable deep learning method for predicting future gene expression
 
 Created at Theis Lab - Helmholtz Munich for my MSc Thesis.
 
-Repo needs to be refined: missing installation specifications \ API \ code clean up.
+Not ready for use: repo needs to be refined. Missing installation specifications \ API \ code clean up.
 
 Please contact me if you plan to use any of this code at leogolinelli@gmail.com
